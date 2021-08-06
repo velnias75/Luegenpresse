@@ -33,6 +33,7 @@ public final class Spew {
 	private final static int MAXLINE = 256;
 	private final static int MAXDEF = 1000;
 
+	private final static byte SLASH = '/';
 	private final static byte BSLASH = '\\';
 	private final static byte[] COMMENT = { BSLASH, '*' };
 
@@ -63,16 +64,23 @@ public final class Spew {
 		defn next;
 	}
 
-	private final static class Class {
+	private final static class Class implements Comparable<Class> {
+
 		public int weight;
-		defn[] list;
+		defn list;
 		byte[] name;
 		byte[] tags;
+
+		@Override
+		public int compareTo(Class o) {
+			return (new String(name)).compareTo(new String(o.name));
+		}
 	}
 
 	private void readtext() throws IOException, SpewException {
 
 		Class cp;
+		int ci = 0;
 		defn dp;
 		defn update;
 
@@ -83,7 +91,7 @@ public final class Spew {
 
 		Classes = 0;
 
-		cp = Class[0];
+		cp = Class[ci];
 		readline();
 
 		if (InLine[0] != '%')
@@ -101,10 +109,32 @@ public final class Spew {
 				throw new SpewException("Expected class instance at: ", InLine);
 			}
 
+			update = null;
+
 			do {
 
+				dp = process();
+
+				if (cp.list == null) {
+					cp.list = dp;
+				} else {
+					update.next = dp;
+				}
+
+				cp.weight += dp.cumul;
+				dp.cumul = cp.weight;
+
+				update = dp;
+
 			} while (nextLine());
+
+			++Classes;
+			cp = Class[++ci];
+
+			update = null;
 		}
+
+		// Arrays.sort(Class);
 	}
 
 	private boolean nextLine() throws IOException {
@@ -139,13 +169,15 @@ public final class Spew {
 		} while (InLine[0] == '\0');
 	}
 
-	private void save(Class cp, byte[] str) {
+	private byte[] save(byte[] str) {
 
-		cp.name = new byte[str.length];
+		final byte[] b = new byte[str.length];
 
 		for (int i = 0; i < str.length; ++i) {
-			cp.name[i] = str[i];
+			b[i] = str[i];
 		}
+
+		return b;
 	}
 
 	private void setup(Class cp) throws SpewException {
@@ -167,7 +199,7 @@ public final class Spew {
 		temp[--p2] = '\0';
 
 		cp.weight = 0;
-		save(cp, temp);
+		cp.name = save(temp);
 		cp.list = null;
 		cp.tags = NullTags;
 
@@ -198,7 +230,7 @@ public final class Spew {
 				++p;
 				temp[p2] = '\0';
 
-				save(cp, temp);
+				cp.name = save(temp);
 				break;
 			default:
 				baddec();
@@ -206,8 +238,107 @@ public final class Spew {
 		}
 	}
 
+	private defn process() throws SpewException, IOException {
+
+		byte[] stuff = new byte[MAXDEF];
+
+		final defn dp = new defn();
+
+		int c;
+		int p = 0;
+		int pout = 0;
+
+		if (InLine[p] == '(') {
+
+			while (InLine[++p] == ' ') {
+			}
+
+			if (!isdigit(InLine[p]))
+				badweight();
+
+			c = InLine[p] - '0';
+
+			while (isdigit(InLine[++p]))
+				c = c * 10 + (InLine[p] - '0');
+
+			while (InLine[p] == ' ')
+				++p;
+
+			if (InLine[p] != ')')
+				badweight();
+
+			++p;
+			dp.cumul = c;
+
+		} else {
+			dp.cumul = 1;
+		}
+
+		while ((c = InLine[p++]) != '\0') {
+			switch (c) {
+			case BSLASH:
+
+				stuff[pout++] = BSLASH;
+
+				if (isalnum(InLine[p])) {
+
+					do {
+						stuff[pout++] = InLine[p++];
+					} while (isalnum(InLine[p]));
+
+					stuff[pout++] = SLASH;
+
+					if (InLine[p] == SLASH) {
+
+						++p;
+
+						if (!isalnum(InLine[p]) && InLine[p] != ' ' && InLine[p] != '&') {
+							stuff[pout++] = ' ';
+						} else {
+							stuff[pout++] = InLine[p++];
+						}
+
+					} else {
+						stuff[pout++] = ' ';
+					}
+
+				} else {
+
+					stuff[pout++] = InLine[p];
+
+					if (InLine[p] != '\0') {
+						++p;
+					} else {
+						--pout;
+						readline();
+						p = 0;
+					}
+				}
+
+				break;
+			default:
+				stuff[pout++] = (byte) c;
+				break;
+			}
+		}
+
+		stuff[pout] = '\0';
+		dp.string = save(stuff);
+
+		return dp;
+
+	}
+
 	private void baddec() throws SpewException {
 		throw new SpewException("Bad class header: ", InLine);
+	}
+
+	private void badweight() throws SpewException {
+		throw new SpewException("Bad line weight: ", InLine);
+	}
+
+	private boolean isdigit(byte c) {
+		return Character.isDigit((char) c);
 	}
 
 	private boolean isalnum(byte c) {
