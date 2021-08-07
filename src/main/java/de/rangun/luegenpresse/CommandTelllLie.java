@@ -30,9 +30,11 @@ import de.rangun.luegenpresse.spew.Spew;
 
 public final class CommandTelllLie implements CommandExecutor {
 
+	private final LuegenpressePlugin plugin;
 	private final FileConfiguration config;
 
 	public CommandTelllLie(LuegenpressePlugin luegenpressePlugin) {
+		this.plugin = luegenpressePlugin;
 		this.config = luegenpressePlugin.getConfig();
 	}
 
@@ -41,7 +43,7 @@ public final class CommandTelllLie implements CommandExecutor {
 
 		try {
 
-			String lie = (new Spew()).getHeadline();
+			String lie = (new Spew(plugin.getHeadline())).getHeadline();
 			lie = lie.substring(0, lie.length() - 1);
 
 			Bukkit.getServer().broadcastMessage(

@@ -20,9 +20,9 @@
 package de.rangun.luegenpresse.spew;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -49,15 +49,19 @@ public final class Spew {
 	private int Classes;
 	private byte[] InLine = new byte[MAXLINE];
 
+	/*-
 	public static void main(String[] args) throws IOException, SpewException {
 		Spew spew = new Spew();
 		System.out.println(spew.getHeadline());
 	}
+	*/
 
-	public Spew() throws IOException, SpewException {
+	public Spew(File in) throws IOException, SpewException {
 
-		InFile = new BufferedReader(
-				new InputStreamReader(this.getClass().getResourceAsStream("/headline"), StandardCharsets.UTF_8));
+		// InFile = new BufferedReader(
+		// new InputStreamReader(this.getClass().getResourceAsStream("/headline"),
+		// StandardCharsets.UTF_8));
+		InFile = new BufferedReader(new FileReader(in));
 		readtext();
 	}
 

@@ -82,7 +82,7 @@ public final class LiarLecternListener implements Listener {
 							int attempto1 = 0;
 							int attempto2 = 0;
 
-							final Spew spew = new Spew();
+							final Spew spew = new Spew(plugin.getHeadline());
 							final Set<String> lieheadlines = new HashSet<>(100);
 
 							do {

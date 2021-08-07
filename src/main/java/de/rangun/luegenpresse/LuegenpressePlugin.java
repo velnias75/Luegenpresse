@@ -19,6 +19,13 @@
 
 package de.rangun.luegenpresse;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -51,8 +58,12 @@ public final class LuegenpressePlugin extends JavaPlugin {
 
 	private final FileConfiguration config = getConfig();
 
+	private File headline;
+
 	@Override
 	public void onEnable() {
+
+		createHeadline();
 
 		config.addDefault("book_of_lies_title", "Book of Lies");
 		config.addDefault("fake_newspaper_title", "National Enquirer");
@@ -83,5 +94,40 @@ public final class LuegenpressePlugin extends JavaPlugin {
 
 		getServer().getPluginManager().registerEvents(new LiarLecternListener(this), this);
 		getCommand("telllie").setExecutor(new CommandTelllLie(this));
+	}
+
+	public File getHeadline() {
+		return headline;
+	}
+
+	private void createHeadline() {
+
+		headline = new File(getDataFolder(), "headline");
+
+		if (!headline.exists()) {
+
+			headline.getParentFile().mkdirs();
+			saveResource("headline", false);
+
+			try {
+
+				final BufferedReader in = new BufferedReader(new InputStreamReader(
+						this.getClass().getResourceAsStream("/headline"), StandardCharsets.UTF_8));
+
+				final FileWriter out = new FileWriter(headline);
+
+				String line;
+
+				while ((line = in.readLine()) != null) {
+					out.write(line);
+					out.write('\n');
+				}
+
+				out.close();
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }
