@@ -24,15 +24,19 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Random;
 
 import com.google.common.primitives.Bytes;
 
 public final class Spew {
 
+	private final static Random rnd = new Random();
+
 	private final static int MAXCLASS = 300;
 	private final static int MAXLINE = 256;
 	private final static int MAXDEF = 1000;
 
+	private final static byte VBAR = '|';
 	private final static byte SLASH = '/';
 	private final static byte BSLASH = '\\';
 	private final static byte[] COMMENT = { BSLASH, '*' };
@@ -56,6 +60,7 @@ public final class Spew {
 		InFile = new BufferedReader(
 				new InputStreamReader(this.getClass().getResourceAsStream("/headline"), StandardCharsets.UTF_8));
 		readtext();
+		display("MAIN/ ".getBytes(), ' ');
 	}
 
 	private final static class defn {
@@ -80,9 +85,9 @@ public final class Spew {
 	private void readtext() throws IOException, SpewException {
 
 		Class cp;
-		int ci = 0;
 		defn dp;
 		defn update;
+		int ci = 0;
 
 		Class = new Class[MAXCLASS];
 
@@ -134,7 +139,7 @@ public final class Spew {
 			update = null;
 		}
 
-		// Arrays.sort(Class);
+		Arrays.sort(Class, 0, Classes);
 	}
 
 	private boolean nextLine() throws IOException {
@@ -163,8 +168,9 @@ public final class Spew {
 
 			InLine[idx] = '\0';
 
-			if ((idx = Bytes.indexOf(InLine, COMMENT)) != -1)
+			if ((idx = Bytes.indexOf(InLine, COMMENT)) != -1) {
 				InLine[idx] = '\0';
+			}
 
 		} while (InLine[0] == '\0');
 	}
@@ -230,7 +236,7 @@ public final class Spew {
 				++p;
 				temp[p2] = '\0';
 
-				cp.name = save(temp);
+				cp.tags = save(temp);
 				break;
 			default:
 				baddec();
@@ -327,6 +333,175 @@ public final class Spew {
 
 		return dp;
 
+	}
+
+	private void display(final byte[] s, int deftag) {
+
+		int i;
+		int c;
+		int p;
+		int variant;
+		int incurly;
+		int writing;
+
+		defn dp;
+
+		Class cp = lookup(s);
+
+		c = s[Bytes.indexOf(s, SLASH) + 1];
+
+		if (c != '&')
+			deftag = c;
+
+		p = Bytes.indexOf(cp.tags, (byte) deftag);
+
+		if (p == -1) {
+			variant = 0;
+			deftag = ' ';
+		} else {
+			variant = p;
+		}
+
+		i = ROLL(cp.weight);
+		dp = cp.list;
+
+		while (dp.cumul <= i) {
+			dp = dp.next;
+		}
+
+		incurly = 0;
+		writing = 1;
+		p = 0;
+
+		for (;;) {
+			switch ((c = dp.string[p++])) {
+			case '\0':
+				return;
+			case BSLASH:
+				if ((c = dp.string[p++]) == '\0')
+					return;
+				else if (c == '!') {
+					System.out.print('\n');
+				} else if (isalnum((byte) c)) {
+
+					if (writing == 1) {
+
+						display(new String(dp.string).substring(p - 1).getBytes(), deftag);
+
+						while (dp.string[p] != SLASH)
+							++p;
+
+						p += 2;
+
+					} else {
+						if (writing == 1)
+							System.out.print((char) c);
+					}
+				}
+
+				break;
+
+			case '{':
+
+				if (incurly == 0) {
+					incurly = 1;
+					writing = variant == 0 ? 1 : 0;
+				} else {
+					if (writing == 1)
+						System.out.print('{');
+				}
+
+				break;
+
+			case VBAR:
+
+				if (incurly != 0) {
+					writing = (variant == incurly++) ? 1 : 0;
+				} else {
+					if (writing == 1)
+						System.out.print(VBAR);
+				}
+
+				break;
+
+			case '}':
+
+				if (incurly != 0) {
+					writing = 1;
+					incurly = 0;
+				} else {
+					System.out.print('}');
+				}
+
+				break;
+
+			default:
+				if (writing == 1)
+					System.out.print((char) c);
+			}
+		}
+
+	}
+
+	private int ROLL(final int n) {
+		return (int) ((((long) rnd.nextInt() & 0x7ffffff) >> 5) % (n));
+	}
+
+	private Class lookup(final byte[] str) {
+
+		int comp;
+		int tryy;
+		int first = 0;
+		int last = Classes - 1;
+
+		/*-
+		for (int i = 0; i < Classes - 1; ++i) {
+			if (namecomp(str, Class[i].name) == 0)
+				return Class[i];
+		} 
+		*/
+
+		while (first <= last) {
+
+			tryy = (first + last) >> 1;
+			comp = namecomp(str, Class[tryy].name);
+
+			if (comp == 0)
+				return Class[tryy];
+
+			if (comp > 0) {
+				first = tryy + 1;
+			} else {
+				last = tryy - 1;
+			}
+
+		}
+
+		return null;
+	}
+
+	private int namecomp(final byte[] a, final byte[] b) {
+
+		int ac;
+		int ap = 0;
+		int bp = 0;
+
+		for (;;) {
+
+			ac = a[ap++];
+
+			if (ac == SLASH)
+				ac = '\0';
+
+			if (ac < b[bp])
+				return -1;
+
+			if (ac > b[bp++])
+				return 1;
+
+			if (ac == '\0')
+				return 0;
+		}
 	}
 
 	private void baddec() throws SpewException {
