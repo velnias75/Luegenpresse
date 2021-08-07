@@ -79,6 +79,9 @@ public final class LiarLecternListener implements Listener {
 
 						try {
 
+							int attempto1 = 0;
+							int attempto2 = 0;
+
 							final Spew spew = new Spew();
 							final Set<String> lieheadlines = new HashSet<>(100);
 
@@ -88,11 +91,13 @@ public final class LiarLecternListener implements Listener {
 
 								do {
 									lie = spew.getHeadline();
-								} while (lie.length() > 110);
+									++attempto2;
+								} while (lie.length() > 110 && attempto2 < 1024);
 
 								lieheadlines.add(lie);
+								++attempto1;
 
-							} while (lieheadlines.size() < 100);
+							} while (lieheadlines.size() < 100 && attempto1 < 1024);
 
 							final Iterator<String> iter = lieheadlines.iterator();
 

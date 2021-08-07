@@ -30,6 +30,8 @@ import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.BookMeta.Generation;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.java.annotation.command.Command;
+import org.bukkit.plugin.java.annotation.command.Commands;
 import org.bukkit.plugin.java.annotation.plugin.ApiVersion;
 import org.bukkit.plugin.java.annotation.plugin.ApiVersion.Target;
 import org.bukkit.plugin.java.annotation.plugin.Description;
@@ -42,23 +44,24 @@ import org.bukkit.plugin.java.annotation.plugin.author.Author;
 @Website(value = "https://github.com/velnias75/Luegenpresse")
 @ApiVersion(Target.v1_16)
 @Author(value = "Velnias75")
+@Commands(@Command(name = "telllie", desc = "Tell a random lie to all players", usage = "/telllie", permission = "luegenpresse.tellie"))
 public final class LuegenpressePlugin extends JavaPlugin {
 
 	public final NamespacedKey BOOK_OF_LIES_KEY = new NamespacedKey(this, "book_of_lies");
-	
+
 	private final FileConfiguration config = getConfig();
-	
+
 	@Override
 	public void onEnable() {
-		
+
 		config.addDefault("book_of_lies_title", "Book of Lies");
 		config.addDefault("fake_newspaper_title", "National Enquirer");
 		config.addDefault("fake_newspaper_author", "Baron Munchausen");
 		config.options().copyDefaults(true);
-        saveConfig();
+		saveConfig();
 
 		final ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
-		final BookMeta meta = (BookMeta)book.getItemMeta();
+		final BookMeta meta = (BookMeta) book.getItemMeta();
 
 		meta.setDisplayName(ChatColor.GREEN + config.getString("book_of_lies_title"));
 		meta.setTitle(meta.getDisplayName());
@@ -79,5 +82,6 @@ public final class LuegenpressePlugin extends JavaPlugin {
 		Bukkit.addRecipe(recipe);
 
 		getServer().getPluginManager().registerEvents(new LiarLecternListener(this), this);
+		getCommand("telllie").setExecutor(new CommandTelllLie(this));
 	}
 }
