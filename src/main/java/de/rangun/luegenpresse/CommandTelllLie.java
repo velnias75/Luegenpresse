@@ -25,6 +25,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 
 import de.rangun.luegenpresse.spew.Spew;
 
@@ -44,17 +45,22 @@ public final class CommandTelllLie implements CommandExecutor {
 		try {
 
 			String lie = (new Spew(plugin.getHeadline())).getHeadline();
-			lie = lie.substring(0, lie.length() - 1);
+			
+			if (lie.endsWith("\n")) {
+				lie = lie.substring(0, lie.length() - 1);
+			}
 
 			Bukkit.getServer().broadcastMessage(
-					ChatColor.GREEN + config.getString("fake_newspaper_title") + ":\n" + ChatColor.DARK_PURPLE + lie);
+					ChatColor.GREEN + config.getString("fake_newspaper_title") + ":\n" + ChatColor.LIGHT_PURPLE + lie);
 
 		} catch (Exception e) {
 
 			Bukkit.getLogger().severe(e.getMessage());
-			Bukkit.getServer().broadcastMessage(
-					ChatColor.GREEN + config.getString("fake_newspaper_title") + ": " + ChatColor.RED + e.getMessage());
 
+			if (sender instanceof Player) {
+				((Player) sender).sendMessage(ChatColor.GREEN + config.getString("fake_newspaper_title") + ": "
+						+ ChatColor.RED + e.getMessage());
+			}
 		}
 
 		return true;
