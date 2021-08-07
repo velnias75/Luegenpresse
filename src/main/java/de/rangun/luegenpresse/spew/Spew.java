@@ -50,9 +50,8 @@ public final class Spew {
 	private byte[] InLine = new byte[MAXLINE];
 
 	public static void main(String[] args) throws IOException, SpewException {
-		System.out.println("SPEW!");
-
 		Spew spew = new Spew();
+		System.out.println(spew.getHeadline());
 	}
 
 	public Spew() throws IOException, SpewException {
@@ -60,7 +59,6 @@ public final class Spew {
 		InFile = new BufferedReader(
 				new InputStreamReader(this.getClass().getResourceAsStream("/headline"), StandardCharsets.UTF_8));
 		readtext();
-		display("MAIN/ ".getBytes(), ' ');
 	}
 
 	private final static class defn {
@@ -335,7 +333,16 @@ public final class Spew {
 
 	}
 
-	private void display(final byte[] s, int deftag) {
+	public String getHeadline() {
+
+		final StringBuilder sb = new StringBuilder();
+
+		display(sb, "MAIN/ ".getBytes(), ' ');
+
+		return sb.toString();
+	}
+
+	private void display(StringBuilder sb, final byte[] s, int deftag) {
 
 		int i;
 		int c;
@@ -381,12 +388,13 @@ public final class Spew {
 				if ((c = dp.string[p++]) == '\0')
 					return;
 				else if (c == '!') {
-					System.out.print('\n');
+					// System.out.print('\n');
+					sb.append('\n');
 				} else if (isalnum((byte) c)) {
 
 					if (writing == 1) {
 
-						display(new String(dp.string).substring(p - 1).getBytes(), deftag);
+						display(sb, new String(dp.string).substring(p - 1).getBytes(), deftag);
 
 						while (dp.string[p] != SLASH)
 							++p;
@@ -395,7 +403,8 @@ public final class Spew {
 
 					} else {
 						if (writing == 1)
-							System.out.print((char) c);
+							// System.out.print((char) c);
+							sb.append((char) c);
 					}
 				}
 
@@ -408,7 +417,8 @@ public final class Spew {
 					writing = variant == 0 ? 1 : 0;
 				} else {
 					if (writing == 1)
-						System.out.print('{');
+						// System.out.print('{');
+						sb.append('{');
 				}
 
 				break;
@@ -419,7 +429,8 @@ public final class Spew {
 					writing = (variant == incurly++) ? 1 : 0;
 				} else {
 					if (writing == 1)
-						System.out.print(VBAR);
+						// System.out.print(VBAR);
+						sb.append((char) VBAR);
 				}
 
 				break;
@@ -430,14 +441,16 @@ public final class Spew {
 					writing = 1;
 					incurly = 0;
 				} else {
-					System.out.print('}');
+					// System.out.print('}');
+					sb.append('}');
 				}
 
 				break;
 
 			default:
 				if (writing == 1)
-					System.out.print((char) c);
+					// System.out.print((char) c);
+					sb.append((char) c);
 			}
 		}
 

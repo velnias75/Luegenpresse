@@ -19,6 +19,11 @@
 
 package de.rangun.luegenpresse;
 
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -33,6 +38,8 @@ import org.bukkit.inventory.meta.BookMeta.Generation;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+
+import de.rangun.luegenpresse.spew.Spew;
 
 public final class LiarLecternListener implements Listener {
 
@@ -69,7 +76,42 @@ public final class LiarLecternListener implements Listener {
 						bm.setDisplayName(bm.getTitle());
 						bm.setAuthor(config.getString("fake_newspaper_author"));
 						bm.setGeneration(Generation.TATTERED);
-						bm.addPage("Soon we will present you a set of lies here.");
+
+						try {
+
+							final Spew spew = new Spew();
+							final Set<String> lieheadlines = new HashSet<>(100);
+
+							do {
+
+								String lie;
+
+								do {
+									lie = spew.getHeadline();
+								} while (lie.length() > 110);
+
+								lieheadlines.add(lie);
+
+							} while (lieheadlines.size() < 100);
+
+							final Iterator<String> iter = lieheadlines.iterator();
+
+							while (iter.hasNext()) {
+
+								String liepage = iter.next();
+
+								if (iter.hasNext()) {
+									liepage += "\n-*-\n\n";
+									liepage += iter.next();
+								}
+
+								bm.addPage(liepage);
+							}
+
+						} catch (Exception e) {
+							Bukkit.getLogger().severe(e.getMessage());
+							bm.addPage("I'm a too honest person, and wasn't able to tell lies to you.");
+						}
 
 						book.setType(Material.WRITTEN_BOOK);
 						book.setItemMeta(meta);
