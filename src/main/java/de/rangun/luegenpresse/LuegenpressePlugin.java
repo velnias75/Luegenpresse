@@ -68,6 +68,7 @@ public final class LuegenpressePlugin extends JavaPlugin {
 		config.addDefault("book_of_lies_title", "Book of Lies");
 		config.addDefault("fake_newspaper_title", "National Enquirer");
 		config.addDefault("fake_newspaper_author", "Baron Munchausen");
+		config.addDefault("lie_broadcast_ticks", 54000L);
 		config.options().copyDefaults(true);
 		saveConfig();
 
@@ -95,7 +96,7 @@ public final class LuegenpressePlugin extends JavaPlugin {
 		getServer().getPluginManager().registerEvents(new JoinListener(this), this);
 		getServer().getPluginManager().registerEvents(new LiarLecternListener(this), this);
 
-		(new TellLieTask(this, null)).runTaskTimerAsynchronously(this, 600L, 108000L);
+		(new TellLieTask(this, null)).runTaskTimerAsynchronously(this, 600L, config.getLong("lie_broadcast_ticks"));
 
 		getCommand("telllie").setExecutor(new CommandTelllLie(this));
 	}

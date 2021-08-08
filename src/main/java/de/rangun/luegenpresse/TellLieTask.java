@@ -37,9 +37,16 @@ public final class TellLieTask extends TellLie {
 		try {
 
 			if (player != null) {
+
 				player.sendMessage(getLie());
+
 			} else {
-				Bukkit.getServer().broadcastMessage(getLie());
+
+				final String lie = getLie();
+
+				for (Player p : Bukkit.getOnlinePlayers()) {
+					p.sendMessage(lie);
+				}
 			}
 
 		} catch (Exception e) {
