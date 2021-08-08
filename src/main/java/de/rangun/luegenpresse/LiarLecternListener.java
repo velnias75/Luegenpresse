@@ -106,7 +106,7 @@ public final class LiarLecternListener implements Listener {
 								String liepage = iter.next();
 
 								if (iter.hasNext()) {
-									liepage += "\n-*-\n\n";
+									liepage += "\n\n-*-\n\n";
 									liepage += iter.next();
 								}
 

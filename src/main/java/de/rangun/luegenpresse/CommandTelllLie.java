@@ -27,15 +27,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
-import de.rangun.luegenpresse.spew.Spew;
+public final class CommandTelllLie extends TellLie implements CommandExecutor {
 
-public final class CommandTelllLie implements CommandExecutor {
-
-	private final LuegenpressePlugin plugin;
 	private final FileConfiguration config;
 
 	public CommandTelllLie(LuegenpressePlugin luegenpressePlugin) {
-		this.plugin = luegenpressePlugin;
+		super(luegenpressePlugin);
 		this.config = luegenpressePlugin.getConfig();
 	}
 
@@ -43,16 +40,7 @@ public final class CommandTelllLie implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
 		try {
-
-			String lie = (new Spew(plugin.getHeadline())).getHeadline();
-			
-			if (lie.endsWith("\n")) {
-				lie = lie.substring(0, lie.length() - 1);
-			}
-
-			Bukkit.getServer().broadcastMessage(
-					ChatColor.GREEN + config.getString("fake_newspaper_title") + ":\n" + ChatColor.LIGHT_PURPLE + lie);
-
+			Bukkit.getServer().broadcastMessage(getLie());
 		} catch (Exception e) {
 
 			Bukkit.getLogger().severe(e.getMessage());
@@ -64,5 +52,10 @@ public final class CommandTelllLie implements CommandExecutor {
 		}
 
 		return true;
+	}
+
+	@Override
+	public void run() {
+		// unused
 	}
 }

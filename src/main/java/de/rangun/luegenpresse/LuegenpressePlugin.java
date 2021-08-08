@@ -92,7 +92,11 @@ public final class LuegenpressePlugin extends JavaPlugin {
 
 		Bukkit.addRecipe(recipe);
 
+		getServer().getPluginManager().registerEvents(new JoinListener(this), this);
 		getServer().getPluginManager().registerEvents(new LiarLecternListener(this), this);
+
+		(new TellLieTask(this, null)).runTaskTimerAsynchronously(this, 600L, 108000L);
+
 		getCommand("telllie").setExecutor(new CommandTelllLie(this));
 	}
 
