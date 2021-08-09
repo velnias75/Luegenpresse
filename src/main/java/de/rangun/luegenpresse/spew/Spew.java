@@ -339,14 +339,15 @@ public final class Spew {
 	public String getHeadline() {
 
 		final StringBuilder sb = new StringBuilder();
+		final List<Byte> aux = Arrays.asList(ArrayUtils.toObject("MAIN/ ".getBytes()));
 
-		display(sb, "MAIN/ ".getBytes(), ' ');
+		display(sb, new ArrayList<Byte>(aux), ' ');
 
 		return sb.toString();
 	}
 
 	@SuppressFBWarnings(value = "UC_USELESS_CONDITION", justification = "false positive")
-	private void display(StringBuilder sb, final byte[] s, int deftag) {
+	private void display(StringBuilder sb, final List<Byte> s, int deftag) {
 
 		int i;
 		int c;
@@ -359,7 +360,7 @@ public final class Spew {
 
 		Class cp = lookup(s);
 
-		c = s[Bytes.indexOf(s, SLASH) + 1];
+		c = s.get(s.indexOf(SLASH) + 1);
 
 		if (c != '&')
 			deftag = c;
@@ -397,8 +398,11 @@ public final class Spew {
 
 					if (writing == 1) {
 
-						display(sb, new String(ArrayUtils.toPrimitive(dp.string.toArray(new Byte[0]))).substring(p - 1)
-								.getBytes(), deftag);
+						final String saux = new String(ArrayUtils.toPrimitive(dp.string.toArray(new Byte[0])))
+								.substring(p - 1);
+						final List<Byte> laux = Arrays.asList(ArrayUtils.toObject(saux.getBytes()));
+
+						display(sb, laux, deftag);
 
 						while (dp.string.get(p) != SLASH)
 							++p;
@@ -459,7 +463,7 @@ public final class Spew {
 		return (int) ((((long) rnd.nextInt() & 0x7ffffff) >> 5) % (n));
 	}
 
-	private Class lookup(final byte[] str) {
+	private Class lookup(final List<Byte> str) {
 
 		int comp;
 		int tryy;
@@ -469,7 +473,7 @@ public final class Spew {
 		while (first <= last) {
 
 			tryy = (first + last) >> 1;
-			comp = namecomp(str, ArrayUtils.toPrimitive(Class[tryy].name.toArray(new Byte[0])));
+			comp = namecomp(str, Class[tryy].name);
 
 			if (comp == 0)
 				return Class[tryy];
@@ -485,7 +489,7 @@ public final class Spew {
 		return null;
 	}
 
-	private int namecomp(final byte[] a, final byte[] b) {
+	private int namecomp(final List<Byte> a, final List<Byte> b) {
 
 		int ac;
 		int ap = 0;
@@ -493,15 +497,15 @@ public final class Spew {
 
 		for (;;) {
 
-			ac = a[ap++];
+			ac = a.get(ap++);
 
 			if (ac == SLASH)
 				ac = '\0';
 
-			if (ac < b[bp])
+			if (ac < b.get(bp))
 				return -1;
 
-			if (ac > b[bp++])
+			if (ac > b.get(bp++))
 				return 1;
 
 			if (ac == '\0')
