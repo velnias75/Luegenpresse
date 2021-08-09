@@ -45,12 +45,11 @@ public final class Spew {
 	private final static byte BSLASH = '\\';
 	private final static byte[] COMMENT = { BSLASH, '*' };
 
-	private final static ArrayList<Byte> NullTags = new ArrayList<Byte>() {
+	private final static ArrayList<Byte> NullTags = new ArrayList<Byte>(2) {
 		private static final long serialVersionUID = -5742816479367105985L;
 		{
 			add((byte) ' ');
 			add((byte) '\0');
-			trimToSize();
 		}
 	};
 

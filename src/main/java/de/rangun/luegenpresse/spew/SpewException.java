@@ -26,8 +26,4 @@ public final class SpewException extends Exception {
 	public SpewException(String message, byte[] inLine) {
 		super((new StringBuilder(message)).append(new String(inLine)).toString());
 	}
-
-	public SpewException(String message, int maxclass) {
-		super((new StringBuilder(message)).append(maxclass).toString());
-	}
 }
