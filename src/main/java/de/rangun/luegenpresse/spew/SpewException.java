@@ -19,11 +19,16 @@
 
 package de.rangun.luegenpresse.spew;
 
+import java.util.List;
+
+import org.apache.commons.lang.ArrayUtils;
+
 public final class SpewException extends Exception {
 
 	private static final long serialVersionUID = -7350200267758922513L;
 
-	public SpewException(String message, byte[] inLine) {
-		super((new StringBuilder(message)).append(new String(inLine)).toString());
+	public SpewException(final String message, final List<Byte> inLine) {
+		super((new StringBuilder(message)).append(new String(ArrayUtils.toPrimitive(inLine.toArray(new Byte[0]))))
+				.toString());
 	}
 }

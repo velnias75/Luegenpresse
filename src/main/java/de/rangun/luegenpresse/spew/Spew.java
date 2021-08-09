@@ -30,20 +30,23 @@ import java.util.Random;
 
 import org.apache.commons.lang.ArrayUtils;
 
-import com.google.common.primitives.Bytes;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public final class Spew {
 
 	private final static Random rnd = new Random();
 
-	private final static int MAXLINE = 256;
-
 	private final static byte VBAR = '|';
 	private final static byte SLASH = '/';
 	private final static byte BSLASH = '\\';
-	private final static byte[] COMMENT = { BSLASH, '*' };
+
+	private final static ArrayList<Byte> COMMENT = new ArrayList<Byte>(2) {
+		private static final long serialVersionUID = 7016931800472906831L;
+		{
+			add(BSLASH);
+			add((byte) '*');
+		}
+	};
 
 	private final static ArrayList<Byte> NullTags = new ArrayList<Byte>(2) {
 		private static final long serialVersionUID = -5742816479367105985L;
@@ -56,7 +59,7 @@ public final class Spew {
 	private BufferedReader InFile;
 
 	private ArrayList<Class> Class = new ArrayList<>();
-	private byte[] InLine = new byte[MAXLINE];
+	private ArrayList<Byte> InLine = new ArrayList<>();
 
 	public Spew(final File in) throws IOException, SpewException {
 		InFile = new BufferedReader(new FileReader(in));
@@ -101,15 +104,15 @@ public final class Spew {
 
 		readline();
 
-		if (InLine[0] != '%')
+		if (InLine.get(0) != '%')
 			throw new SpewException("Class definition expected at: ", InLine);
 
-		while (InLine[1] != '%') {
+		while (InLine.get(1) != '%') {
 
 			setup(cp);
 			readline();
 
-			if (InLine[0] == '%') {
+			if (InLine.get(0) == '%') {
 				throw new SpewException("Expected class instance at: ", InLine);
 			}
 
@@ -146,10 +149,12 @@ public final class Spew {
 
 	private boolean nextLine() throws IOException {
 		readline();
-		return InLine[0] != '%';
+		return InLine.get(0) != '%';
 	}
 
 	private void readline() throws IOException {
+
+		InLine.clear();
 
 		do {
 
@@ -158,23 +163,29 @@ public final class Spew {
 
 			if (line == null) {
 
-				InLine[0] = InLine[1] = '%';
-				InLine[2] = '\0';
+				InLine.add((byte) '%');
+				InLine.add((byte) '%');
+				InLine.add((byte) '\0');
 
 			} else {
 
 				for (byte b : line.getBytes()) {
-					InLine[idx++] = b;
+					InLine.add(b);
 				}
 			}
 
-			InLine[idx] = '\0';
+			InLine.add((byte) '\0');
 
-			if ((idx = Bytes.indexOf(InLine, COMMENT)) != -1) {
-				InLine[idx] = '\0';
+			if ((idx = Collections.indexOfSubList(InLine, COMMENT)) != -1) {
+
+				if (idx == 0) {
+					InLine.clear();
+				} else {
+					InLine.set(idx, (byte) '\0');
+				}
 			}
 
-		} while (InLine[0] == '\0');
+		} while (InLine.isEmpty());
 	}
 
 	private ArrayList<Byte> save(List<Byte> str) {
@@ -187,15 +198,15 @@ public final class Spew {
 		int p2 = 0;
 		final ArrayList<Byte> temp = new ArrayList<>(100);
 
-		while (InLine[p] == ' ')
+		while (InLine.get(p) == ' ')
 			++p;
 
-		if (!isalnum(InLine[p]))
+		if (!isalnum(InLine.get(p)))
 			throw new SpewException("Bad class header: ", InLine);
 
 		do {
-			temp.add(p2++, InLine[p]);
-		} while (isalnum(InLine[p++]));
+			temp.add(p2++, InLine.get(p));
+		} while (isalnum(InLine.get(p++)));
 
 		temp.set(--p2, (byte) '\0');
 
@@ -208,7 +219,7 @@ public final class Spew {
 		--p;
 
 		for (;;) {
-			switch (InLine[p++]) {
+			switch (InLine.get(p++)) {
 			case '\0':
 				return;
 			case ' ':
@@ -221,12 +232,12 @@ public final class Spew {
 				p2 = 0;
 				temp.set(p2++, (byte) ' ');
 
-				while (InLine[p] != '}') {
+				while (InLine.get(p) != '}') {
 
-					if (!isalnum(InLine[p]))
+					if (!isalnum(InLine.get(p)))
 						baddec();
 
-					temp.set(p2++, InLine[p++]);
+					temp.set(p2++, InLine.get(p++));
 				}
 
 				++p;
@@ -250,23 +261,23 @@ public final class Spew {
 		int c;
 		int p = 0;
 
-		if (InLine[p] == '(') {
+		if (InLine.get(p) == '(') {
 
-			while (InLine[++p] == ' ') {
+			while (InLine.get(++p) == ' ') {
 			}
 
-			if (!isdigit(InLine[p]))
+			if (!isdigit(InLine.get(p)))
 				badweight();
 
-			c = InLine[p] - '0';
+			c = InLine.get(p) - '0';
 
-			while (isdigit(InLine[++p]))
-				c = c * 10 + (InLine[p] - '0');
+			while (isdigit(InLine.get(++p)))
+				c = c * 10 + (InLine.get(p) - '0');
 
-			while (InLine[p] == ' ')
+			while (InLine.get(p) == ' ')
 				++p;
 
-			if (InLine[p] != ')')
+			if (InLine.get(p) != ')')
 				badweight();
 
 			++p;
@@ -276,28 +287,28 @@ public final class Spew {
 			dp.cumul = 1;
 		}
 
-		while ((c = InLine[p++]) != '\0') {
+		while ((c = InLine.get(p++)) != '\0') {
 			switch (c) {
 			case BSLASH:
 
 				stuff.add(BSLASH);
 
-				if (isalnum(InLine[p])) {
+				if (isalnum(InLine.get(p))) {
 
 					do {
-						stuff.add(InLine[p++]);
-					} while (isalnum(InLine[p]));
+						stuff.add(InLine.get(p++));
+					} while (isalnum(InLine.get(p)));
 
 					stuff.add(SLASH);
 
-					if (InLine[p] == SLASH) {
+					if (InLine.get(p) == SLASH) {
 
 						++p;
 
-						if (!isalnum(InLine[p]) && InLine[p] != ' ' && InLine[p] != '&') {
+						if (!isalnum(InLine.get(p)) && InLine.get(p) != ' ' && InLine.get(p) != '&') {
 							stuff.add((byte) ' ');
 						} else {
-							stuff.add(InLine[p++]);
+							stuff.add(InLine.get(p++));
 						}
 
 					} else {
@@ -306,9 +317,9 @@ public final class Spew {
 
 				} else {
 
-					stuff.add(InLine[p]);
+					stuff.add(InLine.get(p));
 
-					if (InLine[p] != '\0') {
+					if (InLine.get(p) != '\0') {
 						++p;
 					} else {
 						readline();
