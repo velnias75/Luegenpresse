@@ -35,10 +35,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.BookMeta.Generation;
+import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.java.annotation.command.Command;
 import org.bukkit.plugin.java.annotation.command.Commands;
+import org.bukkit.plugin.java.annotation.permission.Permission;
 import org.bukkit.plugin.java.annotation.plugin.ApiVersion;
 import org.bukkit.plugin.java.annotation.plugin.ApiVersion.Target;
 import org.bukkit.plugin.java.annotation.plugin.Description;
@@ -52,6 +54,8 @@ import org.bukkit.plugin.java.annotation.plugin.author.Author;
 @ApiVersion(Target.v1_16)
 @Author(value = "Velnias75")
 @Commands(@Command(name = "telllie", desc = "Tell a random lie to all players", usage = "/telllie", permission = "luegenpresse.tellie"))
+@Permission(name = "luegenpresse.lie_broadcast_join", desc = "Allows you to receive a lie broadcast on join", defaultValue = PermissionDefault.TRUE)
+@Permission(name = "luegenpresse.lie_broadcast_receiver", desc = "Allows you to receive a lie broadcast", defaultValue = PermissionDefault.TRUE)
 public final class LuegenpressePlugin extends JavaPlugin {
 
 	public final NamespacedKey BOOK_OF_LIES_KEY = new NamespacedKey(this, "book_of_lies");

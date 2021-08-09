@@ -45,7 +45,9 @@ public final class TellLieTask extends TellLie {
 				final String lie = getLie();
 
 				for (Player p : Bukkit.getOnlinePlayers()) {
-					p.sendMessage(lie);
+					if (p.hasPermission("luegenpresse.lie_broadcast_receiver")) {
+						p.sendMessage(lie);
+					}
 				}
 			}
 

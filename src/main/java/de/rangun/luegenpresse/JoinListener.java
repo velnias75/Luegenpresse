@@ -33,6 +33,7 @@ public final class JoinListener implements Listener {
 
 	@EventHandler
 	public void onJoin(final PlayerJoinEvent event) {
-		(new TellLieTask(plugin, event.getPlayer())).runTaskLater(plugin, 100L);
+		if (event.getPlayer().hasPermission("luegenpresse.lie_broadcast_join"))
+			(new TellLieTask(plugin, event.getPlayer())).runTaskLater(plugin, 100L);
 	}
 }
