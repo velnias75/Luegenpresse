@@ -24,7 +24,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -217,8 +216,7 @@ public final class Spew {
 				break;
 			case '{':
 
-				if (!Arrays.equals((ArrayUtils.toPrimitive(cp.tags.toArray(new Byte[0]))),
-						ArrayUtils.toPrimitive(NullTags.toArray(new Byte[0]))))
+				if (!NullTags.equals(cp.tags))
 					baddec();
 
 				p2 = 0;
