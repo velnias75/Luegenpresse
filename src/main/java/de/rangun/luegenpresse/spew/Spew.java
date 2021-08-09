@@ -25,6 +25,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 import org.apache.commons.lang.ArrayUtils;
@@ -39,14 +40,11 @@ public final class Spew {
 
 	private final static int MAXCLASS = 300;
 	private final static int MAXLINE = 256;
-	private final static int MAXDEF = 1000;
 
 	private final static byte VBAR = '|';
 	private final static byte SLASH = '/';
 	private final static byte BSLASH = '\\';
 	private final static byte[] COMMENT = { BSLASH, '*' };
-
-	private BufferedReader InFile;
 
 	private final static ArrayList<Byte> NullTags = new ArrayList<Byte>() {
 		private static final long serialVersionUID = -5742816479367105985L;
@@ -55,6 +53,8 @@ public final class Spew {
 			add((byte) '\0');
 		}
 	};
+
+	private BufferedReader InFile;
 
 	private Class[] Class;
 	private int Classes;
@@ -80,6 +80,7 @@ public final class Spew {
 	private final static class Class implements Comparable<Class> {
 
 		public int weight;
+
 		defn list;
 		ArrayList<Byte> name;
 		ArrayList<Byte> tags;
@@ -184,22 +185,15 @@ public final class Spew {
 		} while (InLine[0] == '\0');
 	}
 
-	private ArrayList<Byte> save(byte[] str) {
-
-		final ArrayList<Byte> b = new ArrayList<>(str.length);
-
-		for (int i = 0; i < str.length; ++i) {
-			b.add(str[i]);
-		}
-
-		return b;
+	private ArrayList<Byte> save(List<Byte> str) {
+		return new ArrayList<>(str);
 	}
 
 	private void setup(Class cp) throws SpewException {
 
 		int p = 1;
 		int p2 = 0;
-		byte[] temp = new byte[100];
+		final ArrayList<Byte> temp = new ArrayList<>(100);
 
 		while (InLine[p] == ' ')
 			++p;
@@ -208,10 +202,10 @@ public final class Spew {
 			throw new SpewException("Bad class header: ", InLine);
 
 		do {
-			temp[p2++] = InLine[p];
+			temp.add(p2++, InLine[p]);
 		} while (isalnum(InLine[p++]));
 
-		temp[--p2] = '\0';
+		temp.set(--p2, (byte) '\0');
 
 		cp.weight = 0;
 		cp.name = save(temp);
@@ -233,18 +227,18 @@ public final class Spew {
 					baddec();
 
 				p2 = 0;
-				temp[p2++] = ' ';
+				temp.set(p2++, (byte) ' ');
 
 				while (InLine[p] != '}') {
 
 					if (!isalnum(InLine[p]))
 						baddec();
 
-					temp[p2++] = InLine[p++];
+					temp.set(p2++, InLine[p++]);
 				}
 
 				++p;
-				temp[p2] = '\0';
+				temp.set(p2, (byte) '\0');
 
 				cp.tags = save(temp);
 				break;
@@ -256,13 +250,11 @@ public final class Spew {
 
 	private defn process() throws SpewException, IOException {
 
-		byte[] stuff = new byte[MAXDEF];
-
+		final ArrayList<Byte> stuff = new ArrayList<>();
 		final defn dp = new defn();
 
 		int c;
 		int p = 0;
-		int pout = 0;
 
 		if (InLine[p] == '(') {
 
@@ -294,38 +286,37 @@ public final class Spew {
 			switch (c) {
 			case BSLASH:
 
-				stuff[pout++] = BSLASH;
+				stuff.add(BSLASH);
 
 				if (isalnum(InLine[p])) {
 
 					do {
-						stuff[pout++] = InLine[p++];
+						stuff.add(InLine[p++]);
 					} while (isalnum(InLine[p]));
 
-					stuff[pout++] = SLASH;
+					stuff.add(SLASH);
 
 					if (InLine[p] == SLASH) {
 
 						++p;
 
 						if (!isalnum(InLine[p]) && InLine[p] != ' ' && InLine[p] != '&') {
-							stuff[pout++] = ' ';
+							stuff.add((byte) ' ');
 						} else {
-							stuff[pout++] = InLine[p++];
+							stuff.add(InLine[p++]);
 						}
 
 					} else {
-						stuff[pout++] = ' ';
+						stuff.add((byte) ' ');
 					}
 
 				} else {
 
-					stuff[pout++] = InLine[p];
+					stuff.add(InLine[p]);
 
 					if (InLine[p] != '\0') {
 						++p;
 					} else {
-						--pout;
 						readline();
 						p = 0;
 					}
@@ -333,12 +324,12 @@ public final class Spew {
 
 				break;
 			default:
-				stuff[pout++] = (byte) c;
+				stuff.add((byte) c);
 				break;
 			}
 		}
 
-		stuff[pout] = '\0';
+		stuff.add((byte) '\0');
 		dp.string = save(stuff);
 
 		return dp;
