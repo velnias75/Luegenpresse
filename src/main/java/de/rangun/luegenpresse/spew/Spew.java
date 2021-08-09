@@ -23,8 +23,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
+
+import org.apache.commons.lang.ArrayUtils;
 
 import com.google.common.primitives.Bytes;
 
@@ -45,7 +48,13 @@ public final class Spew {
 
 	private BufferedReader InFile;
 
-	private final static byte[] NullTags = { ' ', '\0' };
+	private final static ArrayList<Byte> NullTags = new ArrayList<Byte>() {
+		private static final long serialVersionUID = -5742816479367105985L;
+		{
+			add((byte) ' ');
+			add((byte) '\0');
+		}
+	};
 
 	private Class[] Class;
 	private int Classes;
@@ -64,7 +73,7 @@ public final class Spew {
 
 	private final static class defn {
 		int cumul;
-		byte[] string;
+		ArrayList<Byte> string;
 		defn next;
 	}
 
@@ -72,12 +81,13 @@ public final class Spew {
 
 		public int weight;
 		defn list;
-		byte[] name;
-		byte[] tags;
+		ArrayList<Byte> name;
+		ArrayList<Byte> tags;
 
 		@Override
 		public int compareTo(Class o) {
-			return (new String(name)).compareTo(new String(o.name));
+			return (new String(ArrayUtils.toPrimitive(name.toArray(new Byte[0]))))
+					.compareTo(new String(ArrayUtils.toPrimitive(o.name.toArray(new Byte[0]))));
 		}
 	}
 
@@ -174,12 +184,12 @@ public final class Spew {
 		} while (InLine[0] == '\0');
 	}
 
-	private byte[] save(byte[] str) {
+	private ArrayList<Byte> save(byte[] str) {
 
-		final byte[] b = new byte[str.length];
+		final ArrayList<Byte> b = new ArrayList<>(str.length);
 
 		for (int i = 0; i < str.length; ++i) {
-			b[i] = str[i];
+			b.add(str[i]);
 		}
 
 		return b;
@@ -218,7 +228,8 @@ public final class Spew {
 				break;
 			case '{':
 
-				if (!Arrays.equals(cp.tags, NullTags))
+				if (!Arrays.equals((ArrayUtils.toPrimitive(cp.tags.toArray(new Byte[0]))),
+						ArrayUtils.toPrimitive(NullTags.toArray(new Byte[0]))))
 					baddec();
 
 				p2 = 0;
@@ -362,7 +373,7 @@ public final class Spew {
 		if (c != '&')
 			deftag = c;
 
-		p = Bytes.indexOf(cp.tags, (byte) deftag);
+		p = cp.tags.indexOf((byte) deftag);
 
 		if (p == -1) {
 			variant = 0;
@@ -383,11 +394,11 @@ public final class Spew {
 		p = 0;
 
 		for (;;) {
-			switch ((c = dp.string[p++])) {
+			switch ((c = dp.string.get(p++))) {
 			case '\0':
 				return;
 			case BSLASH:
-				if ((c = dp.string[p++]) == '\0')
+				if ((c = dp.string.get(p++)) == '\0')
 					return;
 				else if (c == '!') {
 					sb.append('\n');
@@ -395,9 +406,10 @@ public final class Spew {
 
 					if (writing == 1) {
 
-						display(sb, new String(dp.string).substring(p - 1).getBytes(), deftag);
+						display(sb, new String(ArrayUtils.toPrimitive(dp.string.toArray(new Byte[0]))).substring(p - 1)
+								.getBytes(), deftag);
 
-						while (dp.string[p] != SLASH)
+						while (dp.string.get(p) != SLASH)
 							++p;
 
 						p += 2;
@@ -466,7 +478,7 @@ public final class Spew {
 		while (first <= last) {
 
 			tryy = (first + last) >> 1;
-			comp = namecomp(str, Class[tryy].name);
+			comp = namecomp(str, ArrayUtils.toPrimitive(Class[tryy].name.toArray(new Byte[0])));
 
 			if (comp == 0)
 				return Class[tryy];
