@@ -25,6 +25,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -38,7 +39,6 @@ public final class Spew {
 
 	private final static Random rnd = new Random();
 
-	private final static int MAXCLASS = 300;
 	private final static int MAXLINE = 256;
 
 	private final static byte VBAR = '|';
@@ -56,8 +56,7 @@ public final class Spew {
 
 	private BufferedReader InFile;
 
-	private Class[] Class;
-	private int Classes;
+	private ArrayList<Class> Class = new ArrayList<>();
 	private byte[] InLine = new byte[MAXLINE];
 
 	public Spew(final File in) throws IOException, SpewException {
@@ -97,25 +96,16 @@ public final class Spew {
 		Class cp;
 		defn dp;
 		defn update;
-		int ci = 0;
 
-		Class = new Class[MAXCLASS];
+		cp = new Class();
+		Class.add(cp);
 
-		for (int i = 0; i < Class.length; ++i)
-			Class[i] = new Class();
-
-		Classes = 0;
-
-		cp = Class[ci];
 		readline();
 
 		if (InLine[0] != '%')
 			throw new SpewException("Class definition expected at: ", InLine);
 
 		while (InLine[1] != '%') {
-
-			if (Classes == MAXCLASS)
-				throw new SpewException("Too many classes -- max = ", MAXCLASS);
 
 			setup(cp);
 			readline();
@@ -143,13 +133,16 @@ public final class Spew {
 
 			} while (nextLine());
 
-			++Classes;
-			cp = Class[++ci];
+			cp = new Class();
+			Class.add(cp);
 
 			update = null;
 		}
 
-		Arrays.sort(Class, 0, Classes);
+		Class.remove(Class.size() - 1);
+		Class.trimToSize();
+
+		Collections.sort(Class);
 	}
 
 	private boolean nextLine() throws IOException {
@@ -209,8 +202,10 @@ public final class Spew {
 
 		cp.weight = 0;
 		cp.name = save(temp);
+		cp.name.trimToSize();
 		cp.list = null;
 		cp.tags = NullTags;
+		cp.tags.trimToSize();
 
 		--p;
 
@@ -241,6 +236,8 @@ public final class Spew {
 				temp.set(p2, (byte) '\0');
 
 				cp.tags = save(temp);
+				cp.tags.trimToSize();
+
 				break;
 			default:
 				baddec();
@@ -331,6 +328,7 @@ public final class Spew {
 
 		stuff.add((byte) '\0');
 		dp.string = save(stuff);
+		dp.string.trimToSize();
 
 		return dp;
 
@@ -468,15 +466,15 @@ public final class Spew {
 		int comp;
 		int tryy;
 		int first = 0;
-		int last = Classes - 1;
+		int last = Class.size() - 1;
 
 		while (first <= last) {
 
 			tryy = (first + last) >> 1;
-			comp = namecomp(str, Class[tryy].name);
+			comp = namecomp(str, Class.get(tryy).name);
 
 			if (comp == 0)
-				return Class[tryy];
+				return Class.get(tryy);
 
 			if (comp > 0) {
 				first = tryy + 1;
