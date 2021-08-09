@@ -50,6 +50,7 @@ public final class Spew {
 		{
 			add((byte) ' ');
 			add((byte) '\0');
+			trimToSize();
 		}
 	};
 
@@ -204,7 +205,6 @@ public final class Spew {
 		cp.name.trimToSize();
 		cp.list = null;
 		cp.tags = NullTags;
-		cp.tags.trimToSize();
 
 		--p;
 
