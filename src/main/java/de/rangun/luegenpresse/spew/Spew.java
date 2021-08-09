@@ -28,6 +28,8 @@ import java.util.Random;
 
 import com.google.common.primitives.Bytes;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 public final class Spew {
 
 	private final static Random rnd = new Random();
@@ -341,6 +343,7 @@ public final class Spew {
 		return sb.toString();
 	}
 
+	@SuppressFBWarnings(value = "UC_USELESS_CONDITION", justification = "false positive")
 	private void display(StringBuilder sb, final byte[] s, int deftag) {
 
 		int i;
