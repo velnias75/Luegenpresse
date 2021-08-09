@@ -49,19 +49,14 @@ public final class Spew {
 	private int Classes;
 	private byte[] InLine = new byte[MAXLINE];
 
-	/*-
-	public static void main(String[] args) throws IOException, SpewException {
-		Spew spew = new Spew();
-		System.out.println(spew.getHeadline());
-	}
-	*/
-
-	public Spew(File in) throws IOException, SpewException {
-
-		// InFile = new BufferedReader(
-		// new InputStreamReader(this.getClass().getResourceAsStream("/headline"),
-		// StandardCharsets.UTF_8));
+	public Spew(final File in) throws IOException, SpewException {
 		InFile = new BufferedReader(new FileReader(in));
+		readtext();
+	}
+
+	public Spew(final File in, final long seed) throws IOException, SpewException {
+		InFile = new BufferedReader(new FileReader(in));
+		rnd.setSeed(seed);
 		readtext();
 	}
 
@@ -392,7 +387,6 @@ public final class Spew {
 				if ((c = dp.string[p++]) == '\0')
 					return;
 				else if (c == '!') {
-					// System.out.print('\n');
 					sb.append('\n');
 				} else if (isalnum((byte) c)) {
 
@@ -407,7 +401,6 @@ public final class Spew {
 
 					} else {
 						if (writing == 1)
-							// System.out.print((char) c);
 							sb.append((char) c);
 					}
 				}
@@ -421,7 +414,6 @@ public final class Spew {
 					writing = variant == 0 ? 1 : 0;
 				} else {
 					if (writing == 1)
-						// System.out.print('{');
 						sb.append('{');
 				}
 
@@ -433,7 +425,6 @@ public final class Spew {
 					writing = (variant == incurly++) ? 1 : 0;
 				} else {
 					if (writing == 1)
-						// System.out.print(VBAR);
 						sb.append((char) VBAR);
 				}
 
@@ -445,7 +436,6 @@ public final class Spew {
 					writing = 1;
 					incurly = 0;
 				} else {
-					// System.out.print('}');
 					sb.append('}');
 				}
 
@@ -453,7 +443,6 @@ public final class Spew {
 
 			default:
 				if (writing == 1)
-					// System.out.print((char) c);
 					sb.append((char) c);
 			}
 		}
@@ -470,13 +459,6 @@ public final class Spew {
 		int tryy;
 		int first = 0;
 		int last = Classes - 1;
-
-		/*-
-		for (int i = 0; i < Classes - 1; ++i) {
-			if (namecomp(str, Class[i].name) == 0)
-				return Class[i];
-		} 
-		*/
 
 		while (first <= last) {
 
