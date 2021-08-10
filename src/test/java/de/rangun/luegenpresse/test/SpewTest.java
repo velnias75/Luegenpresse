@@ -39,14 +39,12 @@ public class SpewTest {
 		ClassLoader classLoader = getClass().getClassLoader();
 		File file = new File(classLoader.getResource("headline").getFile());
 
-		spew = new Spew(new File(file.getAbsolutePath()), 1L);
+		spew = Spew.getInstance(new File(file.getAbsolutePath()), Long.valueOf(1L));
 	}
 
 	@Test
 	public void test() throws SpewException {
-		assertEquals(
-				"Cindi Lauper Tells Of Night Of Terror With Muammar Quadaffi. \"He Threatened Me With a Hatchet\".\n",
-				spew.getHeadline());
+		assertEquals("\"I Saw Groucho Marx Alive and Well in Missouri\" Says Game Show Host.\n", spew.getHeadline());
 	}
 
 }

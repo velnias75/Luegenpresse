@@ -30,6 +30,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.lang.ArrayUtils;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -58,19 +60,42 @@ public final class Spew {
 		}
 	};
 
+	private final File in;
+	private FileReader freader;
 	private BufferedReader InFile;
 
 	private ArrayList<Class> Class = new ArrayList<>();
 	private ArrayList<Byte> InLine = new ArrayList<>();
 
-	public Spew(final File in) throws IOException, SpewException {
-		InFile = new BufferedReader(new FileReader(in));
-		readtext();
+	private static Spew instance = null;
+
+	private Spew(final File in, @Nullable final Long seed) throws IOException, SpewException {
+
+		this.in = in;
+
+		if (seed != null)
+			rnd.setSeed(seed);
+
+		reload();
 	}
 
-	public Spew(final File in, final long seed) throws IOException, SpewException {
-		InFile = new BufferedReader(new FileReader(in));
-		rnd.setSeed(seed);
+	public static Spew getInstance(final File in, Long seed) throws IOException, SpewException {
+
+		if (instance == null) {
+			instance = new Spew(in, seed);
+		}
+
+		return instance;
+	}
+
+	public void reload() throws IOException, SpewException {
+
+		Class.clear();
+		InLine.clear();
+
+		freader = new FileReader(in);
+		InFile = new BufferedReader(freader);
+
 		readtext();
 	}
 
@@ -142,6 +167,8 @@ public final class Spew {
 
 			update = null;
 		}
+
+		freader.close();
 
 		Class.remove(Class.size() - 1);
 		Class.trimToSize();
@@ -355,6 +382,9 @@ public final class Spew {
 	@SuppressFBWarnings(value = "UC_USELESS_CONDITION", justification = "false positive")
 	private void display(List<Byte> sb, List<Byte> s, int deftag) throws SpewException {
 
+		if (Class.isEmpty())
+			throw new SpewException("No classes loaded.");
+
 		int i;
 		int c;
 		int p;
@@ -465,7 +495,7 @@ public final class Spew {
 	}
 
 	private int ROLL(final int n) {
-		return (int) ((((long) rnd.nextInt() & 0x7ffffff) >> 5) % (n));
+		return rnd.nextInt(n);
 	}
 
 	private Class lookup(final List<Byte> str) {

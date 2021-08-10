@@ -37,7 +37,7 @@ abstract class TellLie extends BukkitRunnable {
 
 	protected String getLie() throws IOException, SpewException {
 
-		final Spew spew = new Spew(plugin.getHeadline());
+		final Spew spew = Spew.getInstance(plugin.getHeadline(), null);
 		String lie = spew.getHeadline();
 
 		if (lie.endsWith("\n")) {

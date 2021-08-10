@@ -39,7 +39,6 @@ import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.java.annotation.command.Command;
-import org.bukkit.plugin.java.annotation.command.Commands;
 import org.bukkit.plugin.java.annotation.permission.Permission;
 import org.bukkit.plugin.java.annotation.plugin.ApiVersion;
 import org.bukkit.plugin.java.annotation.plugin.ApiVersion.Target;
@@ -53,7 +52,9 @@ import org.bukkit.plugin.java.annotation.plugin.author.Author;
 @Website(value = "https://github.com/velnias75/Luegenpresse")
 @ApiVersion(Target.v1_16)
 @Author(value = "Velnias75")
-@Commands(@Command(name = "telllie", desc = "Tell a random lie to all players", usage = "/telllie", permission = "luegenpresse.tellie"))
+@Author(value = "Gregory Smith")
+@Command(name = "telllie", desc = "Tell a random lie to all players", usage = "/telllie", permission = "luegenpresse.tellie")
+@Command(name = "luegenpresse", desc = "Main commands", usage = "/luegenpresse help|reload", permission = "luegenpresse.luegenpresse")
 @Permission(name = "luegenpresse.lie_broadcast_join", desc = "Allows you to receive a lie broadcast on join", defaultValue = PermissionDefault.TRUE)
 @Permission(name = "luegenpresse.lie_broadcast_receiver", desc = "Allows you to receive a lie broadcast", defaultValue = PermissionDefault.TRUE)
 public final class LuegenpressePlugin extends JavaPlugin {
@@ -102,7 +103,11 @@ public final class LuegenpressePlugin extends JavaPlugin {
 
 		(new TellLieTask(this, null)).runTaskTimerAsynchronously(this, 600L, config.getLong("lie_broadcast_ticks"));
 
+		final LuegenpresseCommand lc = new LuegenpresseCommand(this);
+
 		getCommand("telllie").setExecutor(new CommandTelllLie(this));
+		getCommand("luegenpresse").setExecutor(lc);
+		getCommand("luegenpresse").setTabCompleter(lc);
 	}
 
 	public File getHeadline() {
