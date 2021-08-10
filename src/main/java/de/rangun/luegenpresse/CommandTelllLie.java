@@ -19,6 +19,9 @@
 
 package de.rangun.luegenpresse;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -40,10 +43,17 @@ public final class CommandTelllLie extends TellLie implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
 		try {
+
 			Bukkit.getServer().broadcastMessage(getLie());
+
 		} catch (Exception e) {
 
-			Bukkit.getLogger().severe(e.getMessage());
+			final StringWriter sw = new StringWriter();
+			final PrintWriter pw = new PrintWriter(sw);
+
+			e.printStackTrace(pw);
+
+			Bukkit.getLogger().severe(sw.toString());
 
 			if (sender instanceof Player) {
 				((Player) sender).sendMessage(ChatColor.GREEN + config.getString("fake_newspaper_title") + ": "

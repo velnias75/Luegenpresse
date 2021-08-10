@@ -20,7 +20,6 @@
 package de.rangun.luegenpresse.test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import java.io.File;
 
@@ -28,6 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import de.rangun.luegenpresse.spew.Spew;
+import de.rangun.luegenpresse.spew.SpewException;
 
 public class SpewTest {
 
@@ -43,7 +43,7 @@ public class SpewTest {
 	}
 
 	@Test
-	public void test() {
+	public void test() throws SpewException {
 		assertEquals(
 				"Cindi Lauper Tells Of Night Of Terror With Muammar Quadaffi. \"He Threatened Me With a Hatchet\".\n",
 				spew.getHeadline());

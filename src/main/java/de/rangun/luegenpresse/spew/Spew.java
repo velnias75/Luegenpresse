@@ -23,7 +23,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -168,8 +170,7 @@ public final class Spew {
 				InLine.add((byte) '\0');
 
 			} else {
-
-				for (byte b : line.getBytes()) {
+				for (byte b : line.getBytes(StandardCharsets.UTF_8)) {
 					InLine.add(b);
 				}
 			}
@@ -201,12 +202,12 @@ public final class Spew {
 		while (InLine.get(p) == ' ')
 			++p;
 
-		if (!isalnum(InLine.get(p)))
+		if (!isalnum(InLine, p))
 			throw new SpewException("Bad class header: ", InLine);
 
 		do {
 			temp.add(p2++, InLine.get(p));
-		} while (isalnum(InLine.get(p++)));
+		} while (isalnum(InLine, p++));
 
 		temp.set(--p2, (byte) '\0');
 
@@ -234,7 +235,7 @@ public final class Spew {
 
 				while (InLine.get(p) != '}') {
 
-					if (!isalnum(InLine.get(p)))
+					if (!isalnum(InLine, p))
 						baddec();
 
 					temp.set(p2++, InLine.get(p++));
@@ -293,11 +294,11 @@ public final class Spew {
 
 				stuff.add(BSLASH);
 
-				if (isalnum(InLine.get(p))) {
+				if (isalnum(InLine, p)) {
 
 					do {
 						stuff.add(InLine.get(p++));
-					} while (isalnum(InLine.get(p)));
+					} while (isalnum(InLine, p));
 
 					stuff.add(SLASH);
 
@@ -305,7 +306,7 @@ public final class Spew {
 
 						++p;
 
-						if (!isalnum(InLine.get(p)) && InLine.get(p) != ' ' && InLine.get(p) != '&') {
+						if (!isalnum(InLine, p) && InLine.get(p) != ' ' && InLine.get(p) != '&') {
 							stuff.add((byte) ' ');
 						} else {
 							stuff.add(InLine.get(p++));
@@ -342,17 +343,17 @@ public final class Spew {
 
 	}
 
-	public String getHeadline() {
+	public String getHeadline() throws SpewException {
 
-		final StringBuilder sb = new StringBuilder();
+		List<Byte> sb = new ArrayList<>();
 
-		display(sb, "MAIN/ ", ' ');
+		display(sb, Arrays.asList(ArrayUtils.toObject("MAIN/ ".getBytes())), ' ');
 
-		return sb.toString();
+		return new String(ArrayUtils.toPrimitive(sb.toArray(new Byte[0])));
 	}
 
 	@SuppressFBWarnings(value = "UC_USELESS_CONDITION", justification = "false positive")
-	private void display(StringBuilder sb, final String s, int deftag) {
+	private void display(List<Byte> sb, List<Byte> s, int deftag) throws SpewException {
 
 		int i;
 		int c;
@@ -364,7 +365,11 @@ public final class Spew {
 		defn dp;
 		Class cp = lookup(s);
 
-		c = s.charAt(s.indexOf(SLASH) + 1);
+		if (cp == null) {
+			throw new SpewException("Class lookup failed for: ", s);
+		}
+
+		c = s.get(s.indexOf(SLASH) + 1);
 
 		if (c != '&')
 			deftag = c;
@@ -397,13 +402,12 @@ public final class Spew {
 				if ((c = dp.string.get(p++)) == '\0')
 					return;
 				else if (c == '!') {
-					sb.append('\n');
-				} else if (isalnum((byte) c)) {
+					sb.add((byte) '\n');
+				} else if (isalnum(dp.string, p - 1)) {
 
 					if (writing == 1) {
 
-						display(sb, new String(ArrayUtils.toPrimitive(dp.string.toArray(new Byte[0]))).substring(p - 1),
-								deftag);
+						display(sb, dp.string.subList(p - 1, dp.string.size() - 1), deftag);
 
 						while (dp.string.get(p) != SLASH)
 							++p;
@@ -412,7 +416,7 @@ public final class Spew {
 
 					} else {
 						if (writing == 1)
-							sb.append((char) c);
+							sb.add((byte) c);
 					}
 				}
 
@@ -425,7 +429,7 @@ public final class Spew {
 					writing = variant == 0 ? 1 : 0;
 				} else {
 					if (writing == 1)
-						sb.append('{');
+						sb.add((byte) '{');
 				}
 
 				break;
@@ -436,7 +440,7 @@ public final class Spew {
 					writing = (variant == incurly++) ? 1 : 0;
 				} else {
 					if (writing == 1)
-						sb.append((char) VBAR);
+						sb.add((byte) VBAR);
 				}
 
 				break;
@@ -447,14 +451,14 @@ public final class Spew {
 					writing = 1;
 					incurly = 0;
 				} else {
-					sb.append('}');
+					sb.add((byte) '}');
 				}
 
 				break;
 
 			default:
 				if (writing == 1)
-					sb.append((char) c);
+					sb.add((byte) c);
 			}
 		}
 
@@ -464,7 +468,7 @@ public final class Spew {
 		return (int) ((((long) rnd.nextInt() & 0x7ffffff) >> 5) % (n));
 	}
 
-	private Class lookup(final String str) {
+	private Class lookup(final List<Byte> str) {
 
 		int comp;
 		int tryy;
@@ -474,7 +478,7 @@ public final class Spew {
 		while (first <= last) {
 
 			tryy = (first + last) >> 1;
-			comp = namecomp(str, new String(ArrayUtils.toPrimitive(Class.get(tryy).name.toArray(new Byte[0]))));
+			comp = namecomp(str, Class.get(tryy).name);
 
 			if (comp == 0)
 				return Class.get(tryy);
@@ -490,7 +494,7 @@ public final class Spew {
 		return null;
 	}
 
-	private int namecomp(final String a, final String b) {
+	private int namecomp(final List<Byte> a, final List<Byte> b) {
 
 		int ac;
 		int ap = 0;
@@ -498,15 +502,15 @@ public final class Spew {
 
 		for (;;) {
 
-			ac = a.charAt(ap++);
+			ac = a.get(ap++);
 
 			if (ac == SLASH)
 				ac = '\0';
 
-			if (ac < b.charAt(bp))
+			if (ac < b.get(bp))
 				return -1;
 
-			if (ac > b.charAt(bp++))
+			if (ac > b.get(bp++))
 				return 1;
 
 			if (ac == '\0')
@@ -526,7 +530,8 @@ public final class Spew {
 		return Character.isDigit((char) c);
 	}
 
-	private boolean isalnum(byte c) {
-		return Character.isLetterOrDigit((char) c);
+	private boolean isalnum(List<Byte> list, int idx) {
+		return Character.isDigit((char) ((byte) list.get(idx)))
+				|| Character.isAlphabetic((char) ((byte) list.get(idx)));
 	}
 }
