@@ -98,7 +98,7 @@ public final class LuegenpressePlugin extends JavaPlugin {
 		Bukkit.addRecipe(recipe);
 
 		getServer().getPluginManager().registerEvents(new JoinListener(this), this);
-		getServer().getPluginManager().registerEvents(new LiarLecternListener(this), this);
+		getServer().getPluginManager().registerEvents(new PlayerInteractListener(this), this);
 
 		(new TellLieTask(this, null)).runTaskTimerAsynchronously(this, 600L, config.getLong("lie_broadcast_ticks"));
 
