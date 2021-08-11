@@ -54,7 +54,7 @@ import org.bukkit.plugin.java.annotation.plugin.author.Author;
 @Author(value = "Velnias75")
 @Author(value = "Gregory Smith")
 @Command(name = "telllie", desc = "Tell a random lie to all players", usage = "/telllie", permission = "luegenpresse.tellie")
-@Command(name = "luegenpresse", desc = "Main commands", usage = "/luegenpresse help|reload", permission = "luegenpresse.luegenpresse")
+@Command(name = "luegenpresse", desc = "Main commands", usage = "/luegenpresse help|reload|give", permission = "luegenpresse.luegenpresse")
 @Permission(name = "luegenpresse.lie_broadcast_join", desc = "Allows you to receive a lie broadcast on join", defaultValue = PermissionDefault.TRUE)
 @Permission(name = "luegenpresse.lie_broadcast_receiver", desc = "Allows you to receive a lie broadcast", defaultValue = PermissionDefault.TRUE)
 public final class LuegenpressePlugin extends JavaPlugin {
@@ -77,20 +77,7 @@ public final class LuegenpressePlugin extends JavaPlugin {
 		config.options().copyDefaults(true);
 		saveConfig();
 
-		final ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
-		final BookMeta meta = (BookMeta) book.getItemMeta();
-
-		meta.setDisplayName(ChatColor.GREEN + config.getString("book_of_lies_title"));
-		meta.setTitle(meta.getDisplayName());
-		meta.setGeneration(Generation.TATTERED);
-		meta.setAuthor(config.getString("fake_newspaper_author"));
-		meta.addPage("tbw");
-		// meta.setLore(null);
-
-		meta.getPersistentDataContainer().set(BOOK_OF_LIES_KEY, PersistentDataType.BYTE, Byte.valueOf((byte) 0));
-		book.setItemMeta(meta);
-
-		ShapedRecipe recipe = new ShapedRecipe(BOOK_OF_LIES_KEY, book);
+		ShapedRecipe recipe = new ShapedRecipe(BOOK_OF_LIES_KEY, createBookOfLies(1));
 
 		recipe.shape("DDD", "DBD", "DDD");
 		recipe.setIngredient('D', Material.DIAMOND);
@@ -108,6 +95,24 @@ public final class LuegenpressePlugin extends JavaPlugin {
 		getCommand("telllie").setExecutor(new CommandTelllLie(this));
 		getCommand("luegenpresse").setExecutor(lc);
 		getCommand("luegenpresse").setTabCompleter(lc);
+	}
+
+	public ItemStack createBookOfLies(int amount) {
+
+		final ItemStack book = new ItemStack(Material.WRITTEN_BOOK, amount);
+		final BookMeta meta = (BookMeta) book.getItemMeta();
+
+		meta.setDisplayName(ChatColor.GREEN + config.getString("book_of_lies_title"));
+		meta.setTitle(meta.getDisplayName());
+		meta.setGeneration(Generation.TATTERED);
+		meta.setAuthor(config.getString("fake_newspaper_author"));
+		meta.addPage("tbw");
+		// meta.setLore(null);
+
+		meta.getPersistentDataContainer().set(BOOK_OF_LIES_KEY, PersistentDataType.BYTE, Byte.valueOf((byte) 0));
+		book.setItemMeta(meta);
+
+		return book;
 	}
 
 	public File getHeadline() {

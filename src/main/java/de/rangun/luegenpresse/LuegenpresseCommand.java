@@ -21,13 +21,21 @@ package de.rangun.luegenpresse;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.StringUtil;
 
 import com.google.common.collect.Lists;
@@ -42,6 +50,7 @@ public final class LuegenpresseCommand extends TellLie implements CommandExecuto
 		{
 			add("help");
 			add("reload");
+			add("give");
 		}
 	};
 
@@ -52,7 +61,7 @@ public final class LuegenpresseCommand extends TellLie implements CommandExecuto
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
-		if (args.length == 1) {
+		if (args.length > 0) {
 
 			if (sub.get(0).equals(args[0])) {
 				sender.sendMessage("tbw");
@@ -80,7 +89,58 @@ public final class LuegenpresseCommand extends TellLie implements CommandExecuto
 
 					sender.sendMessage(ChatColor.RED + "Reload failed." + ChatColor.RESET
 							+ " headline file couldn't get loaded: " + e.getMessage());
+				}
 
+				return true;
+			}
+
+			if (sub.get(2).equals(args[0])) {
+
+				if (args.length > 1) {
+
+					boolean found = false;
+
+					for (Player p : Bukkit.getOnlinePlayers()) {
+
+						if (p.getName().equals(args[1])) {
+
+							int amount = 1;
+
+							if (args.length > 2) {
+								try {
+									amount = Integer.parseInt(args[2]);
+								} catch (NumberFormatException e) {
+								}
+							}
+
+							for (Entry<Integer, ItemStack> loi : p.getInventory()
+									.addItem(plugin.createBookOfLies(amount)).entrySet()) {
+								p.getWorld().dropItem(p.getLocation().add(p.getLocation().getDirection()),
+										loi.getValue());
+							}
+
+							p.getWorld().playSound(p.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.5f, 2.0f);
+							p.sendMessage("You've just got " + amount + " " + ChatColor.DARK_GREEN + ChatColor.ITALIC
+									+ plugin.getConfig().getString("book_of_lies_title") + ChatColor.RESET + " from "
+									+ ChatColor.AQUA + sender.getName() + ChatColor.RESET + ".");
+
+							sender.sendMessage("Gave " + amount + " " + ChatColor.DARK_GREEN + ChatColor.ITALIC
+									+ plugin.getConfig().getString("book_of_lies_title") + ChatColor.RESET + " to "
+									+ ChatColor.AQUA + p.getName() + ChatColor.RESET + ".");
+
+							found = true;
+							break;
+						}
+					}
+
+					if (!found) {
+						sender.sendMessage(ChatColor.RED + "No player " + ChatColor.ITALIC + args[1] + ChatColor.RESET
+								+ ChatColor.RED + " found.");
+					}
+
+				} else {
+					sender.sendMessage("Please give me a plyer's name to give " + ChatColor.ITALIC
+							+ plugin.getConfig().getString("book_of_lies_title") + ChatColor.RESET + " to.");
 				}
 
 				return true;
@@ -93,9 +153,9 @@ public final class LuegenpresseCommand extends TellLie implements CommandExecuto
 	@Override
 	public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
 
-		if (args.length != 0) {
+		final List<String> proposals = Lists.newArrayList();
 
-			final List<String> proposals = Lists.newArrayList();
+		if (args.length == 1) {
 
 			for (String s : sub) {
 
@@ -105,6 +165,18 @@ public final class LuegenpresseCommand extends TellLie implements CommandExecuto
 			}
 
 			return proposals;
+
+		} else if (args.length == 2 && sub.get(2).equals(args[0])) {
+
+			for (Player p : Bukkit.getOnlinePlayers()) {
+
+				if (StringUtil.startsWithIgnoreCase(p.getName(), args[1])) {
+					proposals.add(p.getName());
+				}
+			}
+
+			return proposals;
+
 		}
 
 		return sub;
