@@ -53,8 +53,8 @@ import org.bukkit.plugin.java.annotation.plugin.author.Author;
 @ApiVersion(Target.v1_16)
 @Author(value = "Velnias75")
 @Author(value = "Gregory Smith")
-@Command(name = "telllie", desc = "Tell a random lie to all players", usage = "/telllie", permission = "luegenpresse.tellie")
-@Command(name = "luegenpresse", desc = "Main commands", usage = "/luegenpresse help|reload|give", permission = "luegenpresse.luegenpresse")
+@Command(name = "telllie", desc = "Tell a random lie to one or all players", usage = "/telllie [player]", permission = "luegenpresse.tellie")
+@Command(name = "luegenpresse", desc = "Administrative lie commands", usage = "/luegenpresse help|reload|give", permission = "luegenpresse.luegenpresse")
 @Permission(name = "luegenpresse.lie_broadcast_join", desc = "Allows you to receive a lie broadcast on join", defaultValue = PermissionDefault.TRUE)
 @Permission(name = "luegenpresse.lie_broadcast_receiver", desc = "Allows you to receive a lie broadcast", defaultValue = PermissionDefault.TRUE)
 public final class LuegenpressePlugin extends JavaPlugin {
@@ -90,9 +90,12 @@ public final class LuegenpressePlugin extends JavaPlugin {
 
 		(new TellLieTask(this, null)).runTaskTimerAsynchronously(this, 600L, config.getLong("lie_broadcast_ticks"));
 
-		final LuegenpresseCommand lc = new LuegenpresseCommand(this);
+		final CommandTellLie tc = new CommandTellLie(this);
+		final CommandLuegenpresse lc = new CommandLuegenpresse(this);
 
-		getCommand("telllie").setExecutor(new CommandTelllLie(this));
+		getCommand("telllie").setExecutor(tc);
+		getCommand("telllie").setTabCompleter(tc);
+
 		getCommand("luegenpresse").setExecutor(lc);
 		getCommand("luegenpresse").setTabCompleter(lc);
 	}

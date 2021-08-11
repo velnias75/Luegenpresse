@@ -21,10 +21,7 @@ package de.rangun.luegenpresse;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
@@ -43,7 +40,7 @@ import com.google.common.collect.Lists;
 import de.rangun.luegenpresse.spew.Spew;
 import de.rangun.luegenpresse.spew.SpewException;
 
-public final class LuegenpresseCommand extends TellLie implements CommandExecutor, TabCompleter {
+public final class CommandLuegenpresse extends TellLie implements CommandExecutor, TabCompleter {
 
 	private final static List<String> sub = new ArrayList<String>(2) {
 		private static final long serialVersionUID = -2710518232153162079L;
@@ -54,7 +51,7 @@ public final class LuegenpresseCommand extends TellLie implements CommandExecuto
 		}
 	};
 
-	public LuegenpresseCommand(final LuegenpressePlugin plugin) {
+	public CommandLuegenpresse(final LuegenpressePlugin plugin) {
 		super(plugin);
 	}
 
@@ -98,44 +95,36 @@ public final class LuegenpresseCommand extends TellLie implements CommandExecuto
 
 				if (args.length > 1) {
 
-					boolean found = false;
+					Player p = Bukkit.getPlayer(args[1]);
 
-					for (Player p : Bukkit.getOnlinePlayers()) {
+					if (p != null) {
 
-						if (p.getName().equals(args[1])) {
+						int amount = 1;
 
-							int amount = 1;
-
-							if (args.length > 2) {
-								try {
-									amount = Integer.parseInt(args[2]);
-								} catch (NumberFormatException e) {
-								}
+						if (args.length > 2) {
+							try {
+								amount = Integer.parseInt(args[2]);
+							} catch (NumberFormatException e) {
 							}
-
-							for (Entry<Integer, ItemStack> loi : p.getInventory()
-									.addItem(plugin.createBookOfLies(amount)).entrySet()) {
-								p.getWorld().dropItem(p.getLocation().add(p.getLocation().getDirection()),
-										loi.getValue());
-							}
-
-							p.getWorld().playSound(p.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.5f, 2.0f);
-							p.sendMessage("You've just got " + amount + " " + ChatColor.DARK_GREEN + ChatColor.ITALIC
-									+ plugin.getConfig().getString("book_of_lies_title") + ChatColor.RESET + " from "
-									+ ChatColor.AQUA + sender.getName() + ChatColor.RESET + ".");
-
-							sender.sendMessage("Gave " + amount + " " + ChatColor.DARK_GREEN + ChatColor.ITALIC
-									+ plugin.getConfig().getString("book_of_lies_title") + ChatColor.RESET + " to "
-									+ ChatColor.AQUA + p.getName() + ChatColor.RESET + ".");
-
-							found = true;
-							break;
 						}
-					}
 
-					if (!found) {
-						sender.sendMessage(ChatColor.RED + "No player " + ChatColor.ITALIC + args[1] + ChatColor.RESET
-								+ ChatColor.RED + " found.");
+						for (Entry<Integer, ItemStack> loi : p.getInventory().addItem(plugin.createBookOfLies(amount))
+								.entrySet()) {
+							p.getWorld().dropItem(p.getLocation().add(p.getLocation().getDirection()), loi.getValue());
+						}
+
+						p.getWorld().playSound(p.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.5f, 2.0f);
+						p.sendMessage("You've just got " + amount + " " + ChatColor.DARK_GREEN + ChatColor.ITALIC
+								+ plugin.getConfig().getString("book_of_lies_title") + ChatColor.RESET + " from "
+								+ ChatColor.AQUA + sender.getName() + ChatColor.RESET + ".");
+
+						sender.sendMessage("Gave " + amount + " " + ChatColor.DARK_GREEN + ChatColor.ITALIC
+								+ plugin.getConfig().getString("book_of_lies_title") + ChatColor.RESET + " to "
+								+ ChatColor.AQUA + p.getName() + ChatColor.RESET + ".");
+
+					} else {
+						sender.sendMessage(
+								ChatColor.RED + "No player " + ChatColor.AQUA + args[1] + ChatColor.RED + " found.");
 					}
 
 				} else {
@@ -148,6 +137,7 @@ public final class LuegenpresseCommand extends TellLie implements CommandExecuto
 		}
 
 		return false;
+
 	}
 
 	@Override
