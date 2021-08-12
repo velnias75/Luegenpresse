@@ -34,7 +34,8 @@ import de.rangun.luegenpresse.spew.SpewException;
 public class SpewTest {
 
 	private Spew spew;
-	private DefnStringProvider offline_dsp = new DefnStringProvider() {
+
+	private final DefnStringProvider dsp = new DefnStringProvider() {
 
 		@Override
 		public List<Byte> getString(int rnd) {
@@ -48,7 +49,7 @@ public class SpewTest {
 		ClassLoader classLoader = getClass().getClassLoader();
 		File file = new File(classLoader.getResource("headline").getFile());
 
-		spew = Spew.getInstance(new File(file.getAbsolutePath()), offline_dsp, Long.valueOf(1L));
+		spew = Spew.getInstance(new File(file.getAbsolutePath()), dsp, dsp, Long.valueOf(1L));
 	}
 
 	@Test

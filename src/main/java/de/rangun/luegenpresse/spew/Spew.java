@@ -69,6 +69,27 @@ public final class Spew {
 		}
 	};
 
+	private final static ArrayList<Byte> VONLINE = new ArrayList<Byte>(15) {
+		private static final long serialVersionUID = 3295129968331809597L;
+		{
+			add((byte) '%');
+			add((byte) 'V');
+			add((byte) 'O');
+			add((byte) 'N');
+			add((byte) 'L');
+			add((byte) 'I');
+			add((byte) 'N');
+			add((byte) 'E');
+			add((byte) 'P');
+			add((byte) 'L');
+			add((byte) 'A');
+			add((byte) 'Y');
+			add((byte) 'E');
+			add((byte) 'R');
+			add((byte) '\0');
+		}
+	};
+
 	private final static ArrayList<Byte> COMMENT = new ArrayList<Byte>(2) {
 		private static final long serialVersionUID = 7016931800472906831L;
 		{
@@ -94,15 +115,19 @@ public final class Spew {
 	private ArrayList<Byte> InLine = new ArrayList<>();
 
 	@Nonnull
-	final DefnStringProvider offline_dsp;
+	private final DefnStringProvider offline_dsp;
+
+	@Nonnull
+	private final DefnStringProvider online_dsp;
 
 	private static Spew instance = null;
 
-	private Spew(@Nonnull final File in, @Nonnull DefnStringProvider offline_dsp, @Nullable final Long seed)
-			throws IOException, SpewException {
+	private Spew(@Nonnull final File in, @Nonnull DefnStringProvider offline_dsp,
+			@Nonnull DefnStringProvider online_dsp, @Nullable final Long seed) throws IOException, SpewException {
 
 		this.in = in;
 		this.offline_dsp = offline_dsp;
+		this.online_dsp = online_dsp;
 
 		if (seed != null)
 			rnd.setSeed(seed);
@@ -111,10 +136,10 @@ public final class Spew {
 	}
 
 	public static Spew getInstance(@Nonnull final File in, @Nonnull DefnStringProvider offline_dsp,
-			@Nullable final Long seed) throws IOException, SpewException {
+			@Nonnull DefnStringProvider online_dsp, @Nullable final Long seed) throws IOException, SpewException {
 
 		if (instance == null) {
-			instance = new Spew(in, offline_dsp, seed);
+			instance = new Spew(in, offline_dsp, online_dsp, seed);
 		}
 
 		return instance;
@@ -184,16 +209,14 @@ public final class Spew {
 			throw new SpewException("Class definition expected at: ", InLine);
 
 		// rules from headlines file
-		processClass(cp, () -> readline(), () -> nextLine(), () -> {
+		cp = processClass(cp, () -> readline(), () -> nextLine(), () -> {
 			return new defn();
 		});
-
-		Class.remove(Class.size() - 1);
 
 		// inject virtual class for offline players
 		InLine = VOFFLINE;
 
-		processClass(cp, () -> {
+		cp = processClass(cp, () -> {
 			InLine = Lists.newArrayList(Byte.valueOf((byte) '\0'));
 		}, () -> {
 			InLine = Lists.newArrayList(Byte.valueOf((byte) '%'), Byte.valueOf((byte) '%'));
@@ -202,11 +225,22 @@ public final class Spew {
 			return new vdefn(offline_dsp);
 		});
 
+		// inject virtual class for online players
+		InLine = VONLINE;
+
+		cp = processClass(cp, () -> {
+			InLine = Lists.newArrayList(Byte.valueOf((byte) '\0'));
+		}, () -> {
+			InLine = Lists.newArrayList(Byte.valueOf((byte) '%'), Byte.valueOf((byte) '%'));
+			return false;
+		}, () -> {
+			return new vdefn(online_dsp);
+		});
+
 		Class.remove(Class.size() - 1);
+		Class.trimToSize();
 
 		freader.close();
-
-		Class.trimToSize();
 
 		Collections.sort(Class);
 	}
@@ -226,7 +260,7 @@ public final class Spew {
 		boolean nextLine() throws SpewException, IOException;
 	}
 
-	private void processClass(Class cp, final LineProvider lp, final NextLineProvider nlp, final DefnFactory fac)
+	private Class processClass(Class cp, final LineProvider lp, final NextLineProvider nlp, final DefnFactory fac)
 			throws SpewException, IOException {
 
 		defn dp;
@@ -265,6 +299,8 @@ public final class Spew {
 
 			update = null;
 		}
+
+		return cp;
 	}
 
 	private boolean nextLine() throws IOException, SpewException {

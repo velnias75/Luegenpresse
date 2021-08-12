@@ -34,6 +34,7 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.BookMeta;
@@ -50,6 +51,7 @@ import org.bukkit.plugin.java.annotation.plugin.Plugin;
 import org.bukkit.plugin.java.annotation.plugin.Website;
 import org.bukkit.plugin.java.annotation.plugin.author.Author;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import de.rangun.luegenpresse.spew.DefnStringProvider;
@@ -72,14 +74,42 @@ public final class LuegenpressePlugin extends JavaPlugin {
 
 	private File headline;
 
-	private DefnStringProvider offline_dsp = new DefnStringProvider() {
+	private final DefnStringProvider offline_dsp = new DefnStringProvider() {
 
 		@Override
 		public List<Byte> getString(int rnd) {
 
 			final OfflinePlayer[] op = Bukkit.getOfflinePlayers();
+			final List<Byte> l;
 
-			final List<Byte> l = Lists.newArrayList(ArrayUtils.toObject(op[rnd % op.length].getName().getBytes()));
+			if (op.length > 0) {
+				l = Lists.newArrayList(ArrayUtils.toObject(
+						op[Math.min(op.length - 1, rnd % op.length)].getName().getBytes(StandardCharsets.UTF_8)));
+			} else {
+				l = Lists.newArrayList(ArrayUtils.toObject("FakeOfflinePlayer".getBytes(StandardCharsets.UTF_8)));
+			}
+
+			l.add((byte) '\0');
+
+			return l;
+		}
+	};
+
+	private final DefnStringProvider online_dsp = new DefnStringProvider() {
+
+		@Override
+		public List<Byte> getString(int rnd) {
+
+			final List<? extends Player> op = ImmutableList.copyOf(Bukkit.getOnlinePlayers());
+			final List<Byte> l;
+
+			if (!op.isEmpty()) {
+				l = Lists.newArrayList(ArrayUtils.toObject(
+						op.get(Math.min(op.size() - 1, rnd % op.size())).getName().getBytes(StandardCharsets.UTF_8)));
+			} else {
+				l = Lists.newArrayList(ArrayUtils.toObject("FakeOnlinePlayer".getBytes(StandardCharsets.UTF_8)));
+			}
+
 			l.add((byte) '\0');
 
 			return l;
@@ -145,6 +175,10 @@ public final class LuegenpressePlugin extends JavaPlugin {
 
 	public DefnStringProvider getOfflineDefnStringProvider() {
 		return offline_dsp;
+	}
+
+	public DefnStringProvider getOnlineDefnStringProvider() {
+		return online_dsp;
 	}
 
 	private void createHeadline() {
