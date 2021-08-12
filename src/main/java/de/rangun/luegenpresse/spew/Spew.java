@@ -106,6 +106,8 @@ public final class Spew {
 		}
 	};
 
+	private boolean checkForReserved = true;
+
 	@Nonnull
 	private final File in;
 	private FileReader freader;
@@ -171,8 +173,8 @@ public final class Spew {
 
 		final DefnStringProvider dsp;
 
-		public vdefn(final DefnStringProvider p) {
-			this.dsp = p;
+		public vdefn(final DefnStringProvider dsp) {
+			this.dsp = dsp;
 		}
 
 		@Override
@@ -208,10 +210,14 @@ public final class Spew {
 		if (InLine.get(0) != '%')
 			throw new SpewException("Class definition expected at: ", InLine);
 
+		checkForReserved = true;
+
 		// rules from headlines file
 		cp = processClass(cp, () -> readline(), () -> nextLine(), () -> {
 			return new defn();
 		});
+
+		checkForReserved = false;
 
 		// inject virtual class for offline players
 		InLine = VOFFLINE;
@@ -372,6 +378,10 @@ public final class Spew {
 		cp.tags = NullTags;
 
 		--p;
+
+		if (checkForReserved && (VONLINE.subList(1, VONLINE.size()).equals(cp.name)
+				|| VOFFLINE.subList(1, VOFFLINE.size()).equals(cp.name)))
+			throw new SpewException("Class is reserved by plugin: ", cp.name);
 
 		for (;;) {
 			switch (InLine.get(p++)) {
