@@ -47,28 +47,6 @@ public final class Spew {
 	private final static byte SLASH = '/';
 	private final static byte BSLASH = '\\';
 
-	private final static ArrayList<Byte> VOFFLINE = new ArrayList<Byte>(16) {
-		private static final long serialVersionUID = -5742816479367105985L;
-		{
-			add((byte) '%');
-			add((byte) 'V');
-			add((byte) 'O');
-			add((byte) 'F');
-			add((byte) 'F');
-			add((byte) 'L');
-			add((byte) 'I');
-			add((byte) 'N');
-			add((byte) 'E');
-			add((byte) 'P');
-			add((byte) 'L');
-			add((byte) 'A');
-			add((byte) 'Y');
-			add((byte) 'E');
-			add((byte) 'R');
-			add((byte) '\0');
-		}
-	};
-
 	private final static ArrayList<Byte> VONLINE = new ArrayList<Byte>(15) {
 		private static final long serialVersionUID = 3295129968331809597L;
 		{
@@ -117,18 +95,14 @@ public final class Spew {
 	private ArrayList<Byte> InLine = new ArrayList<>();
 
 	@Nonnull
-	private final DefnStringProvider offline_dsp;
-
-	@Nonnull
 	private final DefnStringProvider online_dsp;
 
 	private static Spew instance = null;
 
-	private Spew(@Nonnull final File in, @Nonnull DefnStringProvider offline_dsp,
-			@Nonnull DefnStringProvider online_dsp, @Nullable final Long seed) throws IOException, SpewException {
+	private Spew(@Nonnull final File in, @Nonnull DefnStringProvider online_dsp, @Nullable final Long seed)
+			throws IOException, SpewException {
 
 		this.in = in;
-		this.offline_dsp = offline_dsp;
 		this.online_dsp = online_dsp;
 
 		if (seed != null)
@@ -137,11 +111,11 @@ public final class Spew {
 		reload();
 	}
 
-	public static Spew getInstance(@Nonnull final File in, @Nonnull DefnStringProvider offline_dsp,
-			@Nonnull DefnStringProvider online_dsp, @Nullable final Long seed) throws IOException, SpewException {
+	public static Spew getInstance(@Nonnull final File in, @Nonnull DefnStringProvider online_dsp,
+			@Nullable final Long seed) throws IOException, SpewException {
 
 		if (instance == null) {
-			instance = new Spew(in, offline_dsp, online_dsp, seed);
+			instance = new Spew(in, online_dsp, seed);
 		}
 
 		return instance;
@@ -218,18 +192,6 @@ public final class Spew {
 		});
 
 		checkForReserved = false;
-
-		// inject virtual class for offline players
-		InLine = VOFFLINE;
-
-		cp = processClass(cp, () -> {
-			InLine = Lists.newArrayList(Byte.valueOf((byte) '\0'));
-		}, () -> {
-			InLine = Lists.newArrayList(Byte.valueOf((byte) '%'), Byte.valueOf((byte) '%'));
-			return false;
-		}, () -> {
-			return new vdefn(offline_dsp);
-		});
 
 		// inject virtual class for online players
 		InLine = VONLINE;
@@ -379,8 +341,7 @@ public final class Spew {
 
 		--p;
 
-		if (checkForReserved && (VONLINE.subList(1, VONLINE.size()).equals(cp.name)
-				|| VOFFLINE.subList(1, VOFFLINE.size()).equals(cp.name)))
+		if (checkForReserved && (VONLINE.subList(1, VONLINE.size()).equals(cp.name)))
 			throw new SpewException("Class is reserved by plugin: ", cp.name);
 
 		for (;;) {

@@ -69,8 +69,8 @@ public final class CommandLuegenpresse extends TellLie implements CommandExecuto
 
 				try {
 
-					final Spew spew = Spew.getInstance(plugin.getHeadline(), plugin.getOfflineDefnStringProvider(),
-							plugin.getOnlineDefnStringProvider(), null);
+					final Spew spew = Spew.getInstance(plugin.getHeadline(), plugin.getOnlineDefnStringProvider(),
+							null);
 
 					spew.reload();
 

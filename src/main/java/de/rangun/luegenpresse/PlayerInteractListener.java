@@ -93,8 +93,7 @@ public final class PlayerInteractListener implements Listener {
 									int attempto2 = 0;
 
 									final Spew spew = Spew.getInstance(plugin.getHeadline(),
-											plugin.getOfflineDefnStringProvider(), plugin.getOnlineDefnStringProvider(),
-											null);
+											plugin.getOnlineDefnStringProvider(), null);
 									final Set<String> lieheadlines = new HashSet<>(100);
 
 									do {

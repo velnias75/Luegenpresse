@@ -49,7 +49,7 @@ public class SpewTest {
 		ClassLoader classLoader = getClass().getClassLoader();
 		File file = new File(classLoader.getResource("headline").getFile());
 
-		spew = Spew.getInstance(new File(file.getAbsolutePath()), dsp, dsp, Long.valueOf(1L));
+		spew = Spew.getInstance(new File(file.getAbsolutePath()), dsp, Long.valueOf(1L));
 	}
 
 	@Test

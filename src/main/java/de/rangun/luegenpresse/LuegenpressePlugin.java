@@ -32,7 +32,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -73,27 +72,6 @@ public final class LuegenpressePlugin extends JavaPlugin {
 	private final FileConfiguration config = getConfig();
 
 	private File headline;
-
-	private final DefnStringProvider offline_dsp = new DefnStringProvider() {
-
-		@Override
-		public List<Byte> getString(int rnd) {
-
-			final OfflinePlayer[] op = Bukkit.getOfflinePlayers();
-			final List<Byte> l;
-
-			if (op.length > 0) {
-				l = Lists.newArrayList(ArrayUtils.toObject(
-						op[Math.min(op.length - 1, rnd % op.length)].getName().getBytes(StandardCharsets.UTF_8)));
-			} else {
-				l = Lists.newArrayList(ArrayUtils.toObject("FakeOfflinePlayer".getBytes(StandardCharsets.UTF_8)));
-			}
-
-			l.add((byte) '\0');
-
-			return l;
-		}
-	};
 
 	private final DefnStringProvider online_dsp = new DefnStringProvider() {
 
@@ -171,10 +149,6 @@ public final class LuegenpressePlugin extends JavaPlugin {
 
 	public File getHeadline() {
 		return headline;
-	}
-
-	public DefnStringProvider getOfflineDefnStringProvider() {
-		return offline_dsp;
 	}
 
 	public DefnStringProvider getOnlineDefnStringProvider() {
