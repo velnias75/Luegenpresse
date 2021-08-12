@@ -25,11 +25,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
@@ -46,6 +49,10 @@ import org.bukkit.plugin.java.annotation.plugin.Description;
 import org.bukkit.plugin.java.annotation.plugin.Plugin;
 import org.bukkit.plugin.java.annotation.plugin.Website;
 import org.bukkit.plugin.java.annotation.plugin.author.Author;
+
+import com.google.common.collect.Lists;
+
+import de.rangun.luegenpresse.spew.DefnStringProvider;
 
 @Plugin(name = "Luegenpresse", version = "0.0-SNAPSHOT")
 @Description(value = "A plugin to generate a newspaper of lies")
@@ -64,6 +71,20 @@ public final class LuegenpressePlugin extends JavaPlugin {
 	private final FileConfiguration config = getConfig();
 
 	private File headline;
+
+	private DefnStringProvider offline_dsp = new DefnStringProvider() {
+
+		@Override
+		public List<Byte> getString(int rnd) {
+
+			final OfflinePlayer[] op = Bukkit.getOfflinePlayers();
+
+			final List<Byte> l = Lists.newArrayList(ArrayUtils.toObject(op[rnd % op.length].getName().getBytes()));
+			l.add((byte) '\0');
+
+			return l;
+		}
+	};
 
 	@Override
 	public void onEnable() {
@@ -120,6 +141,10 @@ public final class LuegenpressePlugin extends JavaPlugin {
 
 	public File getHeadline() {
 		return headline;
+	}
+
+	public DefnStringProvider getOfflineDefnStringProvider() {
+		return offline_dsp;
 	}
 
 	private void createHeadline() {

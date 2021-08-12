@@ -30,9 +30,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.apache.commons.lang.ArrayUtils;
+
+import com.google.common.collect.Lists;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -43,6 +46,28 @@ public final class Spew {
 	private final static byte VBAR = '|';
 	private final static byte SLASH = '/';
 	private final static byte BSLASH = '\\';
+
+	private final static ArrayList<Byte> VOFFLINE = new ArrayList<Byte>(16) {
+		private static final long serialVersionUID = -5742816479367105985L;
+		{
+			add((byte) '%');
+			add((byte) 'V');
+			add((byte) 'O');
+			add((byte) 'F');
+			add((byte) 'F');
+			add((byte) 'L');
+			add((byte) 'I');
+			add((byte) 'N');
+			add((byte) 'E');
+			add((byte) 'P');
+			add((byte) 'L');
+			add((byte) 'A');
+			add((byte) 'Y');
+			add((byte) 'E');
+			add((byte) 'R');
+			add((byte) '\0');
+		}
+	};
 
 	private final static ArrayList<Byte> COMMENT = new ArrayList<Byte>(2) {
 		private static final long serialVersionUID = 7016931800472906831L;
@@ -60,6 +85,7 @@ public final class Spew {
 		}
 	};
 
+	@Nonnull
 	private final File in;
 	private FileReader freader;
 	private BufferedReader InFile;
@@ -67,11 +93,16 @@ public final class Spew {
 	private ArrayList<Class> Class = new ArrayList<>();
 	private ArrayList<Byte> InLine = new ArrayList<>();
 
+	@Nonnull
+	final DefnStringProvider offline_dsp;
+
 	private static Spew instance = null;
 
-	private Spew(final File in, @Nullable final Long seed) throws IOException, SpewException {
+	private Spew(@Nonnull final File in, @Nonnull DefnStringProvider offline_dsp, @Nullable final Long seed)
+			throws IOException, SpewException {
 
 		this.in = in;
+		this.offline_dsp = offline_dsp;
 
 		if (seed != null)
 			rnd.setSeed(seed);
@@ -79,10 +110,11 @@ public final class Spew {
 		reload();
 	}
 
-	public static Spew getInstance(final File in, Long seed) throws IOException, SpewException {
+	public static Spew getInstance(@Nonnull final File in, @Nonnull DefnStringProvider offline_dsp,
+			@Nullable final Long seed) throws IOException, SpewException {
 
 		if (instance == null) {
-			instance = new Spew(in, seed);
+			instance = new Spew(in, offline_dsp, seed);
 		}
 
 		return instance;
@@ -99,10 +131,29 @@ public final class Spew {
 		readtext();
 	}
 
-	private final static class defn {
+	private static class defn {
+
 		int cumul;
 		ArrayList<Byte> string;
 		defn next;
+
+		List<Byte> getString() {
+			return string;
+		}
+	}
+
+	private final static class vdefn extends defn {
+
+		final DefnStringProvider dsp;
+
+		public vdefn(final DefnStringProvider p) {
+			this.dsp = p;
+		}
+
+		@Override
+		List<Byte> getString() {
+			return dsp.getString(rnd.nextInt() & Integer.MAX_VALUE);
+		}
 	}
 
 	private final static class Class implements Comparable<Class> {
@@ -123,8 +174,6 @@ public final class Spew {
 	private void readtext() throws IOException, SpewException {
 
 		Class cp;
-		defn dp;
-		defn update;
 
 		cp = new Class();
 		Class.add(cp);
@@ -134,10 +183,59 @@ public final class Spew {
 		if (InLine.get(0) != '%')
 			throw new SpewException("Class definition expected at: ", InLine);
 
+		// rules from headlines file
+		processClass(cp, () -> readline(), () -> nextLine(), () -> {
+			return new defn();
+		});
+
+		Class.remove(Class.size() - 1);
+
+		// inject virtual class for offline players
+		InLine = VOFFLINE;
+
+		processClass(cp, () -> {
+			InLine = Lists.newArrayList(Byte.valueOf((byte) '\0'));
+		}, () -> {
+			InLine = Lists.newArrayList(Byte.valueOf((byte) '%'), Byte.valueOf((byte) '%'));
+			return false;
+		}, () -> {
+			return new vdefn(offline_dsp);
+		});
+
+		Class.remove(Class.size() - 1);
+
+		freader.close();
+
+		Class.trimToSize();
+
+		Collections.sort(Class);
+	}
+
+	@FunctionalInterface
+	private static interface LineProvider {
+		void readline() throws SpewException, IOException;
+	}
+
+	@FunctionalInterface
+	private static interface DefnFactory {
+		defn createDefn();
+	}
+
+	@FunctionalInterface
+	private static interface NextLineProvider {
+		boolean nextLine() throws SpewException, IOException;
+	}
+
+	private void processClass(Class cp, final LineProvider lp, final NextLineProvider nlp, final DefnFactory fac)
+			throws SpewException, IOException {
+
+		defn dp;
+		defn update;
+
 		while (InLine.get(1) != '%') {
 
 			setup(cp);
-			readline();
+			lp.readline();
 
 			if (InLine.get(0) == '%') {
 				throw new SpewException("Expected class instance at: ", InLine);
@@ -147,7 +245,7 @@ public final class Spew {
 
 			do {
 
-				dp = process();
+				dp = process(lp, fac);
 
 				if (cp.list == null) {
 					cp.list = dp;
@@ -160,23 +258,16 @@ public final class Spew {
 
 				update = dp;
 
-			} while (nextLine());
+			} while (nlp.nextLine());
 
 			cp = new Class();
 			Class.add(cp);
 
 			update = null;
 		}
-
-		freader.close();
-
-		Class.remove(Class.size() - 1);
-		Class.trimToSize();
-
-		Collections.sort(Class);
 	}
 
-	private boolean nextLine() throws IOException {
+	private boolean nextLine() throws IOException, SpewException {
 		readline();
 		return InLine.get(0) != '%';
 	}
@@ -281,10 +372,10 @@ public final class Spew {
 		}
 	}
 
-	private defn process() throws SpewException, IOException {
+	private defn process(final LineProvider lp, final DefnFactory fac) throws SpewException, IOException {
 
 		final ArrayList<Byte> stuff = new ArrayList<>();
-		final defn dp = new defn();
+		final defn dp = fac.createDefn();
 
 		int c;
 		int p = 0;
@@ -350,7 +441,7 @@ public final class Spew {
 					if (InLine.get(p) != '\0') {
 						++p;
 					} else {
-						readline();
+						lp.readline();
 						p = 0;
 					}
 				}
@@ -425,21 +516,21 @@ public final class Spew {
 		p = 0;
 
 		for (;;) {
-			switch ((c = dp.string.get(p++))) {
+			switch ((c = dp.getString().get(p++))) {
 			case '\0':
 				return;
 			case BSLASH:
-				if ((c = dp.string.get(p++)) == '\0')
+				if ((c = dp.getString().get(p++)) == '\0')
 					return;
 				else if (c == '!') {
 					sb.add((byte) '\n');
-				} else if (isalnum(dp.string, p - 1)) {
+				} else if (isalnum(dp.getString(), p - 1)) {
 
 					if (writing == 1) {
 
-						display(sb, dp.string.subList(p - 1, dp.string.size() - 1), deftag);
+						display(sb, dp.getString().subList(p - 1, dp.getString().size() - 1), deftag);
 
-						while (dp.string.get(p) != SLASH)
+						while (dp.getString().get(p) != SLASH)
 							++p;
 
 						p += 2;

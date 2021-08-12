@@ -22,16 +22,25 @@ package de.rangun.luegenpresse.test;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import de.rangun.luegenpresse.spew.DefnStringProvider;
 import de.rangun.luegenpresse.spew.Spew;
 import de.rangun.luegenpresse.spew.SpewException;
 
 public class SpewTest {
 
 	private Spew spew;
+	private DefnStringProvider offline_dsp = new DefnStringProvider() {
+
+		@Override
+		public List<Byte> getString(int rnd) {
+			return null;
+		}
+	};
 
 	@Before
 	public void setUp() throws Exception {
@@ -39,7 +48,7 @@ public class SpewTest {
 		ClassLoader classLoader = getClass().getClassLoader();
 		File file = new File(classLoader.getResource("headline").getFile());
 
-		spew = Spew.getInstance(new File(file.getAbsolutePath()), Long.valueOf(1L));
+		spew = Spew.getInstance(new File(file.getAbsolutePath()), offline_dsp, Long.valueOf(1L));
 	}
 
 	@Test
