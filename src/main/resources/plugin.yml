@@ -5,7 +5,7 @@ description: A plugin to generate a newspaper of lies
 authors:
 - Velnias75
 - Gregory Smith
-website: https://github.com/velnias75/Luegenpresse
+website: https://www.spigotmc.org/resources/luegenpresse.102112/
 commands:
   telllie:
     description: Tell a random lie to one or all players
