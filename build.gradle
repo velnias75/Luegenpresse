@@ -1,11 +1,14 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
 plugins {
     id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
 apply plugin: 'java'
 
 archivesBaseName = 'Luegenpresse'
-version = '0.0-SNAPSHOT'
+version = '1.0-SNAPSHOT'
 
 repositories {
 	mavenLocal()
@@ -28,24 +31,50 @@ repositories {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
+        languageVersion.set(JavaLanguageVersion.of(11))
     }
 }
 
 dependencies {
 
 	compileOnly "org.spigotmc:spigot-api:${project.spigot_version}"
-
-	compileOnly("org.spigotmc:plugin-annotations:${project.plugins_annotation_version}") {
-		exclude module: "bukkit"
-	}
-	annotationProcessor "org.spigotmc:plugin-annotations:${project.plugins_annotation_version}"
+	
+	implementation "org.bstats:bstats-bukkit:${project.bstats_version}"
+	shadow "org.bstats:bstats-bukkit:${project.bstats_version}"
 	
 	compileOnly "com.google.code.findbugs:annotations:${project.findbugs_version}"
 	annotationProcessor "com.google.code.findbugs:annotations:${project.findbugs_version}"
 	
 	testImplementation "org.spigotmc:spigot-api:${project.spigot_version}"
 	testImplementation "junit:junit:${project.junit_version}"
+}
+
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+	duplicatesStrategy = 'include'
+        filter ReplaceTokens, tokens: [version: version]
+    }
+}
+
+shadowJar {
+
+	archiveClassifier.set('')    
+    relocate 'org.bstats', 'de.rangun.luegenpresse.shadowed.org.bstats'
+
+    //Exclude META-INF entries of shaded deps
+    exclude 'META-INF/**'
+    exclude '**/*.pdn'
+    exclude '**/*.bbmodel'
+    from('.') {
+        include 'LICENSE.md'
+		include 'NOTICE.txt'
+		include 'licenses/**'
+    }
+    minimize()
+}
+
+assemble {
+	dependsOn shadowJar
 }
 
 test {

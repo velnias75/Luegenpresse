@@ -1,0 +1,25 @@
+main: de.rangun.luegenpresse.LuegenpressePlugin
+name: Luegenpresse
+version: '@version@'
+description: A plugin to generate a newspaper of lies
+authors:
+- Velnias75
+- Gregory Smith
+website: https://github.com/velnias75/Luegenpresse
+commands:
+  telllie:
+    description: Tell a random lie to one or all players
+    permission: luegenpresse.tellie
+    usage: /telllie [player]
+  luegenpresse:
+    description: Administrative lie commands
+    permission: luegenpresse.luegenpresse
+    usage: /luegenpresse help|reload|give
+permissions:
+  luegenpresse.lie_broadcast_join:
+    description: Allows you to receive a lie broadcast on join
+    default: 'true'
+  luegenpresse.lie_broadcast_receiver:
+    description: Allows you to receive a lie broadcast
+    default: 'true'
+api-version: '1.16'

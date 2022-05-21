@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 by Heiko Schäfer <heiko@rangun.de>
+ * Copyright 2021-2022 by Heiko Schäfer <heiko@rangun.de>
  *
  * This file is part of Luegenpresse.
  *
@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -38,33 +39,14 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.BookMeta.Generation;
-import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.plugin.java.annotation.command.Command;
-import org.bukkit.plugin.java.annotation.permission.Permission;
-import org.bukkit.plugin.java.annotation.plugin.ApiVersion;
-import org.bukkit.plugin.java.annotation.plugin.ApiVersion.Target;
-import org.bukkit.plugin.java.annotation.plugin.Description;
-import org.bukkit.plugin.java.annotation.plugin.Plugin;
-import org.bukkit.plugin.java.annotation.plugin.Website;
-import org.bukkit.plugin.java.annotation.plugin.author.Author;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import de.rangun.luegenpresse.spew.DefnStringProvider;
 
-@Plugin(name = "Luegenpresse", version = "0.0-SNAPSHOT")
-@Description(value = "A plugin to generate a newspaper of lies")
-@Website(value = "https://github.com/velnias75/Luegenpresse")
-@ApiVersion(Target.v1_16)
-@Author(value = "Velnias75")
-@Author(value = "Gregory Smith")
-@Command(name = "telllie", desc = "Tell a random lie to one or all players", usage = "/telllie [player]", permission = "luegenpresse.tellie")
-@Command(name = "luegenpresse", desc = "Administrative lie commands", usage = "/luegenpresse help|reload|give", permission = "luegenpresse.luegenpresse")
-@Permission(name = "luegenpresse.lie_broadcast_join", desc = "Allows you to receive a lie broadcast on join", defaultValue = PermissionDefault.TRUE)
-@Permission(name = "luegenpresse.lie_broadcast_receiver", desc = "Allows you to receive a lie broadcast", defaultValue = PermissionDefault.TRUE)
 public final class LuegenpressePlugin extends JavaPlugin {
 
 	public final NamespacedKey BOOK_OF_LIES_KEY = new NamespacedKey(this, "book_of_lies");
@@ -127,6 +109,9 @@ public final class LuegenpressePlugin extends JavaPlugin {
 
 		getCommand("luegenpresse").setExecutor(lc);
 		getCommand("luegenpresse").setTabCompleter(lc);
+		
+		final int pluginId = 15247;
+		new Metrics(this, pluginId);
 	}
 
 	public ItemStack createBookOfLies(int amount) {
