@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 by Heiko Schäfer <heiko@rangun.de>
+ * Copyright 2021-2022 by Heiko Schäfer <heiko@rangun.de>
  *
  * This file is part of Luegenpresse.
  *
@@ -19,6 +19,7 @@
 
 package de.rangun.luegenpresse;
 
+import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -33,7 +34,16 @@ public final class JoinListener implements Listener {
 
 	@EventHandler
 	public void onJoin(final PlayerJoinEvent event) {
+
 		if (event.getPlayer().hasPermission("luegenpresse.lie_broadcast_join"))
 			(new TellLieTask(plugin, event.getPlayer())).runTaskLater(plugin, 100L);
+
+		if (event.getPlayer().isOp()) {
+
+			for (String jm : plugin.getJoinMessages()) {
+				event.getPlayer().sendMessage("" + ChatColor.YELLOW + ChatColor.ITALIC + "["
+						+ plugin.getDescription().getName() + ": " + jm + "]");
+			}
+		}
 	}
 }
