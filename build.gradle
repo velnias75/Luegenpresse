@@ -8,7 +8,7 @@ plugins {
 apply plugin: 'java'
 
 archivesBaseName = 'Luegenpresse'
-version = '1.1-SNAPSHOT'
+version = '1.1'
 
 repositories {
 	mavenLocal()
@@ -20,11 +20,11 @@ repositories {
 		content {
 			includeGroup 'org.bukkit'
 			includeGroup 'org.spigotmc'
-    	}
+		}
 	}
 	
 	maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
-  	maven { url = 'https://oss.sonatype.org/content/repositories/central' }
+	maven { url = 'https://oss.sonatype.org/content/repositories/central' }
 	
 	mavenCentral()
 }
