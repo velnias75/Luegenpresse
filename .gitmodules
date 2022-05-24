@@ -1,0 +1,3 @@
+[submodule "spiget"]
+	path = spiget
+	url = git@github.com:velnias75/plugin-spiget.git

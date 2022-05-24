@@ -25,9 +25,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletionException;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.bstats.bukkit.Metrics;
@@ -48,11 +46,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import de.rangun.luegenpresse.spew.DefnStringProvider;
-import dev.derklaro.spiget.SpigetClient;
-import dev.derklaro.spiget.http.java11.Java11SpigetClient;
-import dev.derklaro.spiget.mapper.gson.GsonMapper;
-import dev.derklaro.spiget.model.Resource;
-import dev.derklaro.spiget.model.Version;
+import de.rangun.spiget.PluginClient;
 
 public final class LuegenpressePlugin extends JavaPlugin {
 
@@ -62,8 +56,8 @@ public final class LuegenpressePlugin extends JavaPlugin {
 
 	private File headline;
 
-	private final SpigetClient spigetClient = new Java11SpigetClient(GsonMapper.INSTANCE);
-	private List<String> joinMessages = new ArrayList<>(2);
+	private final PluginClient spigetClient = new PluginClient(102112, getDescription().getVersion(),
+			getDescription().getName(), getLogger());
 
 	private final DefnStringProvider online_dsp = new DefnStringProvider() {
 
@@ -123,42 +117,7 @@ public final class LuegenpressePlugin extends JavaPlugin {
 		final int pluginId = 15247;
 		new Metrics(this, pluginId);
 
-		try {
-
-			final int id = 102112;
-
-			final Version latestVersion = spigetClient.latestResourceVersion().resourceId(id).exec().join();
-			final Resource resourceDetails = spigetClient.resourceDetails().resourceId(id).exec().join();
-			final String currentVersion = getDescription().getVersion();
-
-			if (!currentVersion.endsWith("-SNAPSHOT") && !currentVersion.equals(latestVersion.name())) {
-
-				final String verMsg1 = "A newer version of " + getDescription().getName() + " is available: "
-						+ latestVersion.name();
-				final String verMsg2 = "Download: " + resourceDetails.file().externalUrl();
-
-				getLogger().warning(verMsg1);
-				getLogger().warning(verMsg2);
-
-				joinMessages.add(verMsg1);
-				joinMessages.add(verMsg2);
-
-			} else if (currentVersion.endsWith("-SNAPSHOT")) {
-
-				final String verMsg1 = "You are using a development version.";
-				final String verMsg2 = "Please report any issues here: "
-						+ resourceDetails.links().get("alternativeSupport");
-
-				getLogger().warning(verMsg1);
-				getLogger().warning(verMsg2);
-
-				joinMessages.add(verMsg1);
-				joinMessages.add(verMsg2);
-			}
-
-		} catch (CompletionException e) {
-			getLogger().warning("Couldn't retrieve latest version.");
-		}
+		spigetClient.checkVersion();
 	}
 
 	public ItemStack createBookOfLies(int amount) {
@@ -219,6 +178,6 @@ public final class LuegenpressePlugin extends JavaPlugin {
 	}
 
 	List<String> getJoinMessages() {
-		return joinMessages;
+		return spigetClient.getJoinMessages();
 	}
 }

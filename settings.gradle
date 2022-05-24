@@ -8,3 +8,5 @@
  */
 
 rootProject.name = 'Luegenpresse'
+
+include 'spiget'
