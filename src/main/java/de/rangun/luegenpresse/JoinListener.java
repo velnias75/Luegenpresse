@@ -24,12 +24,16 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
+import de.rangun.spiget.MessageRetriever;
+
 public final class JoinListener implements Listener {
 
 	private final LuegenpressePlugin plugin;
+	private final MessageRetriever msgs;
 
-	public JoinListener(final LuegenpressePlugin plugin) {
+	public JoinListener(final LuegenpressePlugin plugin, final MessageRetriever msgs) {
 		this.plugin = plugin;
+		this.msgs = msgs;
 	}
 
 	@EventHandler
@@ -40,7 +44,7 @@ public final class JoinListener implements Listener {
 
 		if (event.getPlayer().isOp()) {
 
-			for (String jm : plugin.getJoinMessages()) {
+			for (String jm : msgs.getJoinMessages()) {
 				event.getPlayer().sendMessage("" + ChatColor.YELLOW + ChatColor.ITALIC + "["
 						+ plugin.getDescription().getName() + ": " + jm + "]");
 			}

@@ -41,6 +41,7 @@ import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.BookMeta.Generation;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -100,7 +101,7 @@ public final class LuegenpressePlugin extends JavaPlugin {
 
 		Bukkit.addRecipe(recipe);
 
-		getServer().getPluginManager().registerEvents(new JoinListener(this), this);
+		getServer().getPluginManager().registerEvents(new JoinListener(this, spigetClient), this);
 		getServer().getPluginManager().registerEvents(new PlayerInteractListener(this), this);
 
 		(new TellLieTask(this, null)).runTaskTimerAsynchronously(this, 600L, config.getLong("lie_broadcast_ticks"));
@@ -117,7 +118,14 @@ public final class LuegenpressePlugin extends JavaPlugin {
 		final int pluginId = 15247;
 		new Metrics(this, pluginId);
 
-		spigetClient.checkVersion();
+		new BukkitRunnable() {
+
+			@Override
+			public void run() {
+				spigetClient.checkVersion();
+			}
+
+		}.runTaskAsynchronously(this);
 	}
 
 	public ItemStack createBookOfLies(int amount) {
@@ -175,9 +183,5 @@ public final class LuegenpressePlugin extends JavaPlugin {
 				e.printStackTrace();
 			}
 		}
-	}
-
-	List<String> getJoinMessages() {
-		return spigetClient.getJoinMessages();
 	}
 }
